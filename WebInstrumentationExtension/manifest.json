@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "QAFlow Web Instrumentation",
+  "version": "1.0.0",
+  "description": "Captures DOM metadata locally for QAFlow Hybrid Testing. No typed values are collected.",
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1:47831/*", "<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "QAFlow Web Instrumentation"
+  }
+}

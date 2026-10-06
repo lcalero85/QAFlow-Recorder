@@ -1,0 +1,20 @@
+<Window x:Class="QAFlowRecorder.Views.AnnotationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Annotate result" Width="440" Height="575" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="#090D14" Foreground="#F3F7FC" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
+  <Grid Margin="18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <StackPanel>
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="38" Height="38" Margin="0,0,10,0"/>
+        <TextBlock Grid.Column="1" x:Name="TitleText" Text="Annotation point" FontSize="21" FontWeight="SemiBold" VerticalAlignment="Center"/>
+      </Grid>
+      <TextBlock x:Name="SubtitleText" Text="Document the result without interrupting the flow." Foreground="#98A8BC" Margin="48,2,0,16" TextWrapping="Wrap"/>
+    </StackPanel>
+    <StackPanel Grid.Row="1"><TextBlock x:Name="ExpectedLabel" Text="Expected result *"/><TextBox x:Name="ExpectedBox" Height="70" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Margin="0,5,0,12"/></StackPanel>
+    <StackPanel Grid.Row="2"><TextBlock x:Name="ActualLabel" Text="Actual result"/><TextBox x:Name="ActualBox" Height="70" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Margin="0,5,0,12"/></StackPanel>
+    <StackPanel Grid.Row="3" Orientation="Horizontal"><RadioButton x:Name="OkRadio" Content="OK" IsChecked="True" Margin="0,0,18,0" Checked="ResultChanged"/><RadioButton x:Name="ErrorRadio" Content="Error" Margin="0,0,18,0" Checked="ResultChanged"/><RadioButton x:Name="DoubtRadio" Content="Doubt" Checked="ResultChanged"/></StackPanel>
+    <Grid Grid.Row="4" Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel><TextBlock x:Name="SeverityLabel" Text="Severity"/><ComboBox x:Name="SeverityBox" Margin="0,5,8,0" IsEnabled="False"><ComboBoxItem Content="Critical"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Medium" IsSelected="True"/><ComboBoxItem Content="Low"/></ComboBox></StackPanel><StackPanel Grid.Column="1"><TextBlock x:Name="CaptureLabel" Text="Automatic capture"/><CheckBox x:Name="CaptureBox" Content="Attach screenshot" IsChecked="True" Margin="8,10,0,0"/></StackPanel></Grid>
+    <StackPanel Grid.Row="5" Margin="0,12,0,0"><TextBlock x:Name="NoteLabel" Text="Free note"/><TextBox x:Name="NoteBox" Height="60" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Margin="0,5,0,0"/></StackPanel>
+    <Grid Grid.Row="6" Margin="0,18,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions><Button x:Name="CancelButton" Content="Cancel" IsCancel="True"/><Button Grid.Column="2" x:Name="SaveButton" Style="{StaticResource PrimaryButton}" Content="Save annotation" Click="Save_Click"/></Grid>
+  </Grid>
+</Window>

@@ -1,0 +1,90 @@
+<Window x:Class="QAFlowRecorder.Views.ScreenshotMarkupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mark screenshot — QAFlow" Width="1180" Height="820"
+        MinWidth="980" MinHeight="720"
+        WindowStartupLocation="CenterScreen" Background="#090D14" Foreground="#F3F7FC" Icon="pack://application:,,,/Assets/qaflow.ico">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#0E1420" BorderBrush="#26364A" BorderThickness="1" CornerRadius="10" Padding="14,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="30" Height="30" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="HeaderTitle" Text="Mark screenshot" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock x:Name="HeaderSubtitle" Text="Review the screenshot, mark the issue visually and save the result." Foreground="#98A8BC" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Border Grid.Column="1" Background="#111A27" BorderBrush="#26364A" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="ModeBadge" Text="BUG MARKUP" FontWeight="SemiBold" Foreground="#BFD0E4"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Margin="0,12,0,0" Background="#0E1420" BorderBrush="#26364A" BorderThickness="1" CornerRadius="10" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <WrapPanel Grid.Row="0" VerticalAlignment="Center">
+                    <Button x:Name="RectangleButton" Content="▭ Rectangle" Tag="Rectangle" Click="Tool_Click" Margin="3" Padding="16,10" ToolTip="Draw rectangle"/>
+                    <Button x:Name="CircleButton" Content="◯ Circle" Tag="Circle" Click="Tool_Click" Margin="3" Padding="16,10" ToolTip="Draw circle"/>
+                    <Button x:Name="ArrowButton" Content="➜ Arrow" Tag="Arrow" Click="Tool_Click" Margin="3" Padding="16,10" ToolTip="Draw arrow"/>
+                    <Button x:Name="LineButton" Content="╱ Line" Tag="Line" Click="Tool_Click" Margin="3" Padding="16,10" ToolTip="Draw line"/>
+                    <Button x:Name="TextButton" Content="T Text" Tag="Text" Click="Tool_Click" Margin="3" Padding="16,10" ToolTip="Insert text"/>
+                    <Button x:Name="CalloutButton" Content="💬 Callout" Tag="Callout" Click="Tool_Click" Margin="3" Padding="16,10" ToolTip="Insert callout"/>
+                    <Button x:Name="UndoButton" Content="↶ Undo" Click="Undo_Click" Margin="12,3,3,3" Padding="16,10" ToolTip="Undo last mark"/>
+                </WrapPanel>
+                <Grid Grid.Row="1" Margin="3,8,3,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="TextLabel" Text="Text / Callout:" Margin="0,0,8,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#DCE8F5"/>
+                    <TextBox Grid.Column="1" x:Name="AnnotationText" Height="40" MinWidth="320" VerticalContentAlignment="Center" ToolTip="Text used by Text and Callout tools"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="ColorLabel" Text="Color" Margin="10,0,8,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#DCE8F5"/>
+                        <Button x:Name="ColorPickerButton" Width="44" Height="40" Padding="0" Click="ColorPicker_Click" ToolTip="Change annotation color" Background="#121C2A" BorderBrush="#35506B">
+                            <Grid>
+                                <Ellipse x:Name="ColorSwatch" Width="22" Height="22" Fill="#EF2B2D" Stroke="#FFFFFF" StrokeThickness="1.5"/>
+                                <Ellipse Width="32" Height="32" Stroke="#5AA9FF" StrokeThickness="1" Opacity="0.35"/>
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Margin="0,12,0,0" Background="#11161F" BorderBrush="#26364A" BorderThickness="1" CornerRadius="10" Padding="8">
+            <Grid>
+                <Viewbox Stretch="Uniform">
+                    <Grid x:Name="CaptureSurface" Width="1000" Height="620" Background="#20262F">
+                        <Image x:Name="ScreenshotImage" Stretch="Fill" Width="1000" Height="620" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <Canvas x:Name="Overlay" Background="Transparent" Width="1000" Height="620"
+                                MouseLeftButtonDown="Overlay_MouseLeftButtonDown"
+                                MouseMove="Overlay_MouseMove"
+                                MouseLeftButtonUp="Overlay_MouseLeftButtonUp"/>
+                    </Grid>
+                </Viewbox>
+                <Border x:Name="EmptyState" Background="#D9222B36" CornerRadius="10" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock x:Name="EmptyTitle" Text="No screenshot was captured" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="EmptyBody" Text="Try again. QAFlow should capture the target window automatically." Foreground="#D7E2EE" Margin="0,8,0,0" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="0,14,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <TextBlock x:Name="HintText" Text="Draw over the screenshot. Undo removes the last mark." Foreground="#98A8BC" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" x:Name="SavePlainButton" Content="💾 Save without marks" Width="190" Click="SavePlain_Click"/>
+            <Button Grid.Column="3" x:Name="SaveMarkedButton" Style="{StaticResource DangerButton}" Content="✅ Save marked" Width="190" Click="SaveMarked_Click"/>
+        </Grid>
+    </Grid>
+</Window>

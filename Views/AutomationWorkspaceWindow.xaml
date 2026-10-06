@@ -1,0 +1,690 @@
+<Window x:Class="QAFlowRecorder.Views.AutomationWorkspaceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="QAFlow Automation Workspace" Width="1120" Height="760" MinWidth="980" MinHeight="650"
+        WindowStartupLocation="CenterOwner" Background="#090D14" Foreground="#F3F7FC"
+        Icon="pack://application:,,,/Assets/qaflow.ico">
+    <Grid Margin="18">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="12" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="44" Height="44" Stretch="Uniform"/>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleText" Text="Automation Workspace" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="SubtitleText" Text="Organize web automation assets without changing Recorder behavior." Foreground="#8FA8C0" FontSize="11" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Border Grid.Column="2" Background="#102638" BorderBrush="#285A7D" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                    <TextBlock x:Name="ModeBadgeText" Text="WEB ONLY · CAPTURE → TEST CASE → RUN" Foreground="#77C9FF" FontWeight="SemiBold" FontSize="10"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#0E1622" BorderBrush="#263A50" BorderThickness="1" CornerRadius="10" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ProjectsLabel" Text="Projects" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" x:Name="NewProjectButton" Content="＋ New" Padding="10,6" Click="NewProject_Click"/>
+                    </Grid>
+                    <ListBox Grid.Row="2" x:Name="ProjectsList" SelectionChanged="ProjectsList_SelectionChanged" DisplayMemberPath="DisplayName"/>
+                    <Button Grid.Row="4" x:Name="DeleteProjectButton" Content="Delete project" Style="{StaticResource DangerButton}" Click="DeleteProject_Click"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="10" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="3*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="150"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="ProjectNameLabel" Text="Project name" FontWeight="SemiBold"/>
+                            <TextBox x:Name="ProjectNameBox" Margin="0,5,0,0" Height="38" VerticalContentAlignment="Center" TextChanged="ProjectEditor_Changed"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock x:Name="BaseUrlLabel" Text="Base URL" FontWeight="SemiBold"/>
+                            <TextBox x:Name="BaseUrlBox" Margin="0,5,0,0" Height="38" VerticalContentAlignment="Center" TextChanged="ProjectEditor_Changed" ToolTip="Required before automation execution is enabled in a later phase."/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock x:Name="BrowserLabel" Text="Browser" FontWeight="SemiBold"/>
+                            <ComboBox x:Name="BrowserBox" Margin="0,5,0,0" Height="38" SelectionChanged="ProjectEditor_Changed"><ComboBoxItem Content="Chrome" IsSelected="True"/><ComboBoxItem Content="Edge"/></ComboBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Grid.Row="2" x:Name="ProjectHintText" Text="Phase 3 can convert recorded web activity into reviewable Test Case drafts. Automatic execution is still disabled." Foreground="#7FA4C3" TextWrapping="Wrap"/>
+
+                    <TabControl Grid.Row="4" x:Name="WorkspaceTabs">
+                        <TabItem x:Name="SuitesTab" Header="Suites">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="SuitesHelpText" Text="Group related test cases into suites." Foreground="#8FA8C0" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" x:Name="RunSuiteButton" Content="▶ Run suite" Style="{StaticResource PrimaryButton}" Click="RunSuite_Click" IsEnabled="False"/>
+                                    <Button Grid.Column="3" x:Name="NewSuiteButton" Content="＋ Suite" Click="NewSuite_Click"/>
+                                    <Button Grid.Column="5" x:Name="DeleteSuiteButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteSuite_Click"/>
+                                </Grid>
+                                <DataGrid Grid.Row="2" x:Name="SuitesGrid" AutoGenerateColumns="False" IsReadOnly="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="SuitesGrid_SelectionChanged" CellEditEnding="SuitesGrid_CellEditEnding">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="#" Binding="{Binding Order}" Width="55"/>
+                                        <DataGridTextColumn Header="Suite" Binding="{Binding Name}" Width="2*"/>
+                                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*"/>
+                                        <DataGridTextColumn Header="Cases" Binding="{Binding TestCases.Count}" Width="70" IsReadOnly="True"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="CasesTab" Header="Test Cases">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="CasesContextText" Text="Select a suite to manage its test cases." Foreground="#8FA8C0" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" x:Name="RunCaseButton" Content="▶ Run selected" Style="{StaticResource PrimaryButton}" Click="RunCase_Click" IsEnabled="False"/>
+                                    <Button Grid.Column="3" x:Name="NewCaseButton" Content="＋ Test case" Click="NewCase_Click"/>
+                                    <Button Grid.Column="5" x:Name="DeleteCaseButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteCase_Click"/>
+                                </Grid>
+                                <DataGrid Grid.Row="2" x:Name="CasesGrid" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="CasesGrid_SelectionChanged" CellEditEnding="CasesGrid_CellEditEnding">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="95"/>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
+                                        <DataGridComboBoxColumn x:Name="ModeColumn" Header="Mode" SelectedItemBinding="{Binding Mode}" Width="105"/>
+                                        <DataGridComboBoxColumn x:Name="StatusColumn" Header="Status" SelectedItemBinding="{Binding Status}" Width="110"/>
+                                        <DataGridTextColumn Header="v" Binding="{Binding Version}" Width="42" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="Steps" Binding="{Binding Steps.Count}" Width="58" IsReadOnly="True"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Border Grid.Row="4" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="150"/></Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock x:Name="CaseDescriptionLabel" Text="Description" Foreground="#90A6BC"/>
+                                            <TextBox x:Name="CaseDescriptionBox" Height="56" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,0" TextChanged="CaseEditor_Changed"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock x:Name="CaseExpectedLabel" Text="Expected outcome" Foreground="#90A6BC"/>
+                                            <TextBox x:Name="CaseExpectedBox" Height="56" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,0" TextChanged="CaseEditor_Changed"/>
+                                        </StackPanel>
+                                        <DataGrid Grid.Row="2" Grid.ColumnSpan="3" x:Name="CaseStepsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="#" Binding="{Binding Order}" Width="42"/>
+                                                <DataGridTextColumn Header="Mode" Binding="{Binding IsManualCheckpoint}" Width="65"/>
+                                                <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="85"/>
+                                                <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="2*"/>
+                                                <DataGridTextColumn Header="URL" Binding="{Binding SourceUrl}" Width="1.5*"/>
+                                                <DataGridTextColumn Header="DOM selector" Binding="{Binding SelectorProfile.PrimaryDisplay}" Width="2*"/>
+                                                <DataGridTextColumn Header="Value" Binding="{Binding ValueExpression}" Width="120"/>
+                                                <DataGridTextColumn Header="Assertions" Binding="{Binding Assertions.Count}" Width="75"/>
+                                                <DataGridTextColumn Header="Confidence" Binding="{Binding AutomationConfidence}" Width="85"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="GovernanceTab" Header="Governance &amp; Audit">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="GovernanceTitleText" Text="Versioning, approval &amp; audit" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="GovernanceHelpText" Text="Keep immutable test-case versions, review approvals and a local audit trail. Recorder behavior is unchanged." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <Border Grid.Row="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Selected test case" Foreground="#7890A8" FontSize="10"/>
+                                            <TextBlock x:Name="GovernanceCaseText" Text="—" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                                            <TextBlock x:Name="GovernanceStateText" Text="Select a test case." Foreground="#9CB1C6" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock x:Name="VersionNoteLabel" Text="Version / review note" Foreground="#7890A8" FontSize="10"/>
+                                            <TextBox x:Name="VersionNoteBox" Height="38" Margin="0,5,0,0" VerticalContentAlignment="Center"/>
+                                            <CheckBox x:Name="RequireApprovalCheck" Content="Require approved version for Assisted/Automated runs" Margin="0,8,0,0" Click="RequireApprovalCheck_Click"/>
+                                        </StackPanel>
+                                        <WrapPanel Grid.Column="4" VerticalAlignment="Center" MaxWidth="390">
+                                            <Button x:Name="CreateVersionButton" Content="Create version" Click="CreateVersion_Click" Margin="3"/>
+                                            <Button x:Name="SubmitReviewButton" Content="Submit review" Click="SubmitReview_Click" Margin="3"/>
+                                            <Button x:Name="ApproveButton" Content="Approve" Style="{StaticResource PrimaryButton}" Click="Approve_Click" Margin="3"/>
+                                            <Button x:Name="RejectButton" Content="Reject" Style="{StaticResource DangerButton}" Click="Reject_Click" Margin="3"/>
+                                        </WrapPanel>
+                                    </Grid>
+                                </Border>
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.45*"/></Grid.ColumnDefinitions>
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="6"/><RowDefinition Height="*"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <TextBlock Text="Version history" FontWeight="SemiBold"/>
+                                        <DataGrid Grid.Row="2" x:Name="VersionsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="70"/>
+                                                <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="135"/>
+                                                <DataGridTextColumn Header="By" Binding="{Binding CreatedBy}" Width="110"/>
+                                                <DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="*"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <Button Grid.Row="4" x:Name="RestoreVersionButton" Content="Restore as new version" Click="RestoreVersion_Click" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Grid.Column="2">
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="6"/><RowDefinition Height="*"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <TextBlock Text="Audit trail" FontWeight="SemiBold"/>
+                                        <DataGrid Grid.Row="2" x:Name="AuditGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Time" Binding="{Binding TimestampDisplay}" Width="145"/>
+                                                <DataGridTextColumn Header="User" Binding="{Binding User}" Width="105"/>
+                                                <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="130"/>
+                                                <DataGridTextColumn Header="Entity" Binding="{Binding EntityName}" Width="1.2*"/>
+                                                <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="2*"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <Button Grid.Row="4" x:Name="RefreshAuditButton" Content="Refresh" Click="RefreshAudit_Click" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+
+
+                        <TabItem x:Name="DataAssertionsTab" Header="Test Data &amp; Assertions">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.35*"/></Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="150"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock x:Name="TestDataTitleText" Text="Test data sets" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="TestDataHelpText" Text="Variables resolve expressions such as ${username}. Secrets stay in Windows Credential Manager." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                            <Button Grid.Column="1" x:Name="NewDataSetButton" Content="＋ Data set" Click="NewDataSet_Click"/>
+                                            <Button Grid.Column="3" x:Name="DeleteDataSetButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteDataSet_Click"/>
+                                        </Grid>
+                                        <DataGrid Grid.Row="2" x:Name="DataSetsGrid" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DataSetsGrid_SelectionChanged" CellEditEnding="DataSetsGrid_CellEditEnding">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Data set" Binding="{Binding Name}" Width="2*"/>
+                                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*"/>
+                                                <DataGridTextColumn Header="Vars" Binding="{Binding Variables.Count}" Width="55" IsReadOnly="True"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <Grid Grid.Row="4">
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock x:Name="VariableNameLabel" Text="Variable" Foreground="#90A6BC"/><TextBox x:Name="VariableNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="VariableValueLabel" Text="Value" Foreground="#90A6BC"/><TextBox x:Name="VariableValueBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/><PasswordBox x:Name="VariableSecretBox" Height="36" Margin="0,4,0,0" Visibility="Collapsed"/></StackPanel>
+                                            <StackPanel Grid.Column="4" VerticalAlignment="Bottom"><CheckBox x:Name="VariableSecretCheck" Content="Secret" Checked="VariableSecretCheck_Changed" Unchecked="VariableSecretCheck_Changed"/><Button x:Name="SaveVariableButton" Content="Add / update" Margin="0,6,0,0" Click="SaveVariable_Click"/></StackPanel>
+                                        </Grid>
+                                        <DataGrid Grid.Row="6" x:Name="VariablesGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="VariablesGrid_SelectionChanged">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Variable" Binding="{Binding Name}" Width="2*"/>
+                                                <DataGridTextColumn Header="Type" Binding="{Binding TypeDisplay}" Width="85"/>
+                                                <DataGridTextColumn Header="Value" Binding="{Binding DisplayValue}" Width="2*"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <Button Grid.Row="6" x:Name="DeleteVariableButton" Content="Delete selected variable" Style="{StaticResource DangerButton}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8" Click="DeleteVariable_Click"/>
+                                    </Grid>
+                                </Border>
+
+                                <Border Grid.Column="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                        <StackPanel><TextBlock x:Name="AssertionsTitleText" Text="Step data &amp; assertions" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="AssertionsHelpText" Text="Bind input/select values to test data and validate the expected browser state after a step." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock x:Name="AssertionCaseLabel" Text="Test case" Foreground="#90A6BC"/><ComboBox x:Name="AssertionCaseBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="AssertionCaseBox_SelectionChanged"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="AssertionStepLabel" Text="Step" Foreground="#90A6BC"/><ComboBox x:Name="AssertionStepBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="AssertionStepBox_SelectionChanged"/></StackPanel>
+                                        </Grid>
+                                        <Border Grid.Row="4" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="7" Padding="10">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock x:Name="DefaultDataSetLabel" Text="Default data set" Foreground="#90A6BC"/><ComboBox x:Name="DefaultDataSetBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="DefaultDataSetBox_SelectionChanged"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock x:Name="ValueExpressionLabel" Text="Step value expression" Foreground="#90A6BC"/><TextBox x:Name="ValueExpressionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" TextChanged="ValueExpressionBox_TextChanged" ToolTip="Examples: ${username}, ${password}, Active"/></StackPanel>
+                                            </Grid>
+                                        </Border>
+                                        <Grid Grid.Row="6">
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <ComboBox x:Name="AssertionTypeBox" Grid.Column="0" Height="36"/>
+                                                <TextBox x:Name="AssertionExpectedBox" Grid.Column="2" Height="36" VerticalContentAlignment="Center" ToolTip="Expected text/value when required."/>
+                                                <Button x:Name="AddAssertionButton" Grid.Column="4" Content="＋ Assertion" Click="AddAssertion_Click"/>
+                                                <Button x:Name="DeleteAssertionButton" Grid.Column="6" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteAssertion_Click"/>
+                                            </Grid>
+                                            <DataGrid Grid.Row="2" x:Name="AssertionsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Assertion" Binding="{Binding Type}" Width="180"/>
+                                                    <DataGridTextColumn Header="Expected" Binding="{Binding Expected}" Width="*"/>
+                                                    <DataGridCheckBoxColumn Header="Step target" Binding="{Binding UseStepTarget}" Width="90"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
+
+                        <TabItem x:Name="ComponentsRecoveryTab" Header="Components &amp; Recovery">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.35*"/></Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <StackPanel><TextBlock x:Name="ComponentsTitleText" Text="Reusable web components" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="ComponentsHelpText" Text="Promote stable test flows into reusable building blocks and insert them into other test cases." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <DataGrid Grid.Row="2" x:Name="ComponentsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="ComponentsGrid_SelectionChanged">
+                                            <DataGrid.Columns><DataGridTextColumn Header="Component" Binding="{Binding Name}" Width="2*"/><DataGridTextColumn Header="Steps" Binding="{Binding Steps.Count}" Width="70"/><DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2.5*"/></DataGrid.Columns>
+                                        </DataGrid>
+                                        <Grid Grid.Row="4">
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Name" Foreground="#90A6BC"/><TextBox x:Name="ComponentNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Description" Foreground="#90A6BC"/><TextBox x:Name="ComponentDescriptionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                            </Grid>
+                                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <Button x:Name="CreateComponentButton" Content="Save selected case as component" Click="CreateComponent_Click"/>
+                                                <Button Grid.Column="2" x:Name="InsertComponentButton" Content="Insert into selected case" Style="{StaticResource PrimaryButton}" Click="InsertComponent_Click"/>
+                                                <Button Grid.Column="4" x:Name="DeleteComponentButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteComponent_Click"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                                <Border Grid.Column="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                        <StackPanel><TextBlock x:Name="RecoveryTitleText" Text="Recovery &amp; self-healing" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="RecoveryHelpText" Text="Configure retries and failure behavior. When stable selectors break, QAFlow attempts a conservative semantic recovery before asking the QA or failing the test." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock Text="Test case" Foreground="#90A6BC"/><ComboBox x:Name="RecoveryCaseBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecoveryCaseBox_SelectionChanged"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock Text="Step" Foreground="#90A6BC"/><ComboBox x:Name="RecoveryStepBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecoveryStepBox_SelectionChanged"/></StackPanel>
+                                        </Grid>
+                                        <Border Grid.Row="4" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="7" Padding="10">
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Retries" Foreground="#90A6BC"/><TextBox x:Name="RecoveryRetriesBox" Text="1" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Delay (ms)" Foreground="#90A6BC"/><TextBox x:Name="RecoveryDelayBox" Text="600" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="4"><TextBlock Text="On failure" Foreground="#90A6BC"/><ComboBox x:Name="FailureActionBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                            </Grid>
+                                        </Border>
+                                        <Grid Grid.Row="6">
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="HealingStatusText" Text="Self-healing is conservative: unique semantic matches only. Changes are learned into the step selector profile after a successful recovery." Foreground="#77C9FF" TextWrapping="Wrap" VerticalAlignment="Center"/><Button Grid.Column="1" x:Name="SaveRecoveryButton" Content="Save recovery policy" Style="{StaticResource PrimaryButton}" Click="SaveRecovery_Click"/></Grid>
+                                            <DataGrid Grid.Row="2" x:Name="RecoveryStepsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                                                <DataGrid.Columns><DataGridTextColumn Header="#" Binding="{Binding Order}" Width="42"/><DataGridTextColumn Header="Step" Binding="{Binding Target}" Width="2*"/><DataGridTextColumn Header="Retries" Binding="{Binding MaxRetries}" Width="70"/><DataGridTextColumn Header="Failure" Binding="{Binding OnFailure}" Width="120"/><DataGridTextColumn Header="Healed" Binding="{Binding HealingCount}" Width="70"/><DataGridTextColumn Header="Selector" Binding="{Binding SelectorProfile.PrimaryDisplay}" Width="2*"/></DataGrid.Columns>
+                                            </DataGrid>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="SuiteRunsTab" Header="Suite Runs">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="SuiteRunsTitleText" Text="Suite execution history" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="SuiteRunsHelpText" Text="Execute complete suites sequentially and consolidate all test case results in one offline HTML report." Foreground="#8FA8C0" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <DataGrid Grid.Row="2" x:Name="SuiteRunsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Started" Binding="{Binding StartedDisplay}" Width="145"/>
+                                        <DataGridTextColumn Header="Suite" Binding="{Binding SuiteName}" Width="2*"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                                        <DataGridTextColumn Header="Pass" Binding="{Binding PassRate, StringFormat={}{0}%}" Width="70"/>
+                                        <DataGridTextColumn Header="Passed" Binding="{Binding PassedCases}" Width="65"/>
+                                        <DataGridTextColumn Header="Failed" Binding="{Binding FailedCases}" Width="65"/>
+                                        <DataGridTextColumn Header="Duration" Binding="{Binding DurationDisplay}" Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="SuiteRunsScopeText" Text="Suite orchestration remains web-only and uses the same URL scope and recovery rules as individual runs." Foreground="#7FA4C3" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                    <Button Grid.Column="1" x:Name="OpenSuiteRunFolderButton" Content="Open folder" Click="OpenSuiteRunFolder_Click"/>
+                                    <Button Grid.Column="3" x:Name="OpenSuiteRunReportButton" Content="Open HTML report" Click="OpenSuiteRunReport_Click"/>
+                                    <Button Grid.Column="5" x:Name="SendSuiteRunButton" Content="✉ Send report" Style="{StaticResource PrimaryButton}" Click="SendSuiteRun_Click"/>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="DeliveryTab" Header="Report Delivery">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <Grid Margin="12" MaxWidth="820" HorizontalAlignment="Left">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <StackPanel>
+                                        <TextBlock x:Name="DeliveryTitleText" Text="Email report delivery" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="DeliveryHelpText" Text="Send suite HTML reports and selected QA/Bug PDFs through your organization's SMTP server. Passwords are stored in Windows Credential Manager." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <Border Grid.Row="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="14">
+                                        <Grid>
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <CheckBox x:Name="DeliveryEnabledCheck" Content="Enable email delivery for this project" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/>
+                                            <CheckBox Grid.Column="2" x:Name="AutoSendCheck" Content="Send automatically after suite run" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/>
+                                            <StackPanel Grid.Row="2"><TextBlock Text="SMTP host" FontWeight="SemiBold"/><TextBox x:Name="SmtpHostBox" Margin="0,5,0,0" TextChanged="DeliveryText_Changed"/></StackPanel>
+                                            <StackPanel Grid.Row="2" Grid.Column="2"><TextBlock Text="Port" FontWeight="SemiBold"/><Grid Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox x:Name="SmtpPortBox" Text="587" TextChanged="DeliveryText_Changed"/><CheckBox Grid.Column="1" x:Name="SmtpSslCheck" Content="SSL/TLS" Margin="12,0,0,0" VerticalAlignment="Center" IsChecked="True" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/></Grid></StackPanel>
+                                            <StackPanel Grid.Row="4"><TextBlock Text="Username" FontWeight="SemiBold"/><TextBox x:Name="SmtpUserBox" Margin="0,5,0,0" TextChanged="DeliveryText_Changed"/></StackPanel>
+                                            <StackPanel Grid.Row="4" Grid.Column="2"><TextBlock Text="Password" FontWeight="SemiBold"/><PasswordBox x:Name="SmtpPasswordBox" Margin="0,5,0,0" PasswordChanged="SmtpPasswordBox_PasswordChanged" ToolTip="Stored securely in Windows Credential Manager."/></StackPanel>
+                                            <StackPanel Grid.Row="6"><TextBlock Text="From address" FontWeight="SemiBold"/><TextBox x:Name="FromAddressBox" Margin="0,5,0,0" TextChanged="DeliveryText_Changed"/></StackPanel>
+                                            <StackPanel Grid.Row="6" Grid.Column="2"><TextBlock Text="Recipients" FontWeight="SemiBold"/><TextBox x:Name="RecipientsBox" Margin="0,5,0,0" TextChanged="DeliveryText_Changed" ToolTip="Separate recipients with comma or semicolon."/></StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="4" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="14">
+                                        <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="120"/></Grid.RowDefinitions>
+                                            <StackPanel Orientation="Horizontal"><CheckBox x:Name="AttachSuiteHtmlCheck" Content="Attach suite HTML" IsChecked="True" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/><CheckBox x:Name="AttachCaseHtmlCheck" Content="Attach individual case HTML reports" Margin="18,0,0,0" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/></StackPanel>
+                                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="PdfAttachmentsLabel" Text="QA/Bug PDF attachments" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" x:Name="AddPdfButton" Content="＋ Add PDF" Click="AddPdf_Click"/><Button Grid.Column="3" x:Name="RemovePdfButton" Content="Remove" Click="RemovePdf_Click"/></Grid>
+                                            <ListBox Grid.Row="4" x:Name="PdfAttachmentsList"/>
+                                        </Grid>
+                                    </Border>
+                                    <Grid Grid.Row="6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="DeliveryStatusText" Text="Delivery settings are local to this project." Foreground="#7FA4C3" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" x:Name="TestEmailButton" Content="Send test email" Click="TestEmail_Click"/>
+                                        <Button Grid.Column="3" x:Name="SaveDeliveryButton" Content="Save delivery settings" Style="{StaticResource PrimaryButton}" Click="SaveDelivery_Click"/>
+                                    </Grid>
+                                </Grid>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <TabItem x:Name="RunsTab" Header="Runs">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="RunsTitleText" Text="Web automation runs" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="RunsHelpText" Text="Execution history is immutable and stored locally with step evidence and an offline HTML report." Foreground="#8FA8C0" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <DataGrid Grid.Row="2" x:Name="RunsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Started" Binding="{Binding StartedDisplay}" Width="145"/>
+                                        <DataGridTextColumn Header="Test case" Binding="{Binding DisplayName}" Width="2*"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="95"/>
+                                        <DataGridTextColumn Header="Pass" Binding="{Binding PassRate, StringFormat={}{0}%}" Width="70"/>
+                                        <DataGridTextColumn Header="Duration" Binding="{Binding DurationDisplay}" Width="85"/>
+                                        <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="85"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="RunsScopeText" Text="Phase 9 execution remains web-only and can use project environments while respecting URL scope and allowed domains." Foreground="#7FA4C3" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" x:Name="OpenRunFolderButton" Content="Open run folder" Click="OpenRunFolder_Click"/>
+                                    <Button Grid.Column="3" x:Name="OpenRunReportButton" Content="Open HTML report" Style="{StaticResource PrimaryButton}" Click="OpenRunReport_Click"/>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="InstrumentationTab" Header="Web Instrumentation">
+                            <Grid Margin="14">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="InstrumentationTitleText" Text="DOM instrumentation and selector intelligence" FontSize="18" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="InstrumentationHelpText" Text="QAFlow enriches recorded web actions with DOM metadata and ranks stable selectors. Typed values are never collected." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Border Grid.Row="2" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <StackPanel><TextBlock Text="LOCAL BRIDGE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="BridgeStatusText" Text="Checking..." FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                                        <StackPanel Grid.Column="1"><TextBlock Text="EXTENSION" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="ExtensionStatusText" Text="Not connected" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="SELECTOR POLICY" Foreground="#7890A8" FontSize="10"/><TextBlock Text="Stable DOM first" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Grid.Row="4" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <StackPanel>
+                                        <TextBlock x:Name="InstrumentationStepsTitle" Text="Connect Chrome or Edge" FontSize="15" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="InstrumentationStepsText" Margin="0,8,0,0" Foreground="#B7C8D9" TextWrapping="Wrap" Text="1. Open the browser Extensions page.&#10;2. Enable Developer mode.&#10;3. Choose Load unpacked and select the QAFlow WebInstrumentationExtension folder.&#10;4. Keep QAFlow in Hybrid Testing mode with a valid Base URL.&#10;&#10;The extension communicates only with 127.0.0.1 on this PC and only sends DOM metadata for URLs inside the configured automation scope."/>
+                                        <Border Margin="0,14,0,0" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="6" Padding="10">
+                                            <TextBlock x:Name="SelectorPolicyText" Text="Selector priority: data-testid → stable id → name → aria-label → role + accessible name → CSS → XPath. UI Automation remains a fallback only." Foreground="#77C9FF" TextWrapping="Wrap"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                                <Grid Grid.Row="6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="InstrumentationPrivacyText" Text="No field values are captured. Recorder Only disables DOM event acceptance." Foreground="#7FA4C3" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" x:Name="OpenExtensionFolderButton" Content="Open extension folder" Click="OpenExtensionFolder_Click"/>
+                                    <Button Grid.Column="3" x:Name="RefreshInstrumentationButton" Content="Refresh status" Style="{StaticResource PrimaryButton}" Click="RefreshInstrumentation_Click"/>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="EnvironmentsTab" Header="Environments &amp; Scheduling">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                <Border Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <StackPanel><TextBlock x:Name="EnvironmentsTitleText" Text="Web environments" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="EnvironmentsHelpText" Text="Reuse the same suites against different web environments without duplicating test cases." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <DataGrid Grid.Row="2" x:Name="EnvironmentsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="EnvironmentsGrid_SelectionChanged">
+                                            <DataGrid.Columns><DataGridTextColumn Header="Environment" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="Base URL" Binding="{Binding BaseUrl}" Width="2*"/><DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="80"/><DataGridCheckBoxColumn Header="Default" Binding="{Binding IsDefault}" Width="65"/></DataGrid.Columns>
+                                        </DataGrid>
+                                        <Grid Grid.Row="4">
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Name" Foreground="#90A6BC"/><TextBox x:Name="EnvironmentNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Base URL" Foreground="#90A6BC"/><TextBox x:Name="EnvironmentBaseUrlBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                            </Grid>
+                                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Allowed domains" Foreground="#90A6BC"/><TextBox x:Name="EnvironmentDomainsBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Comma-separated trusted domains."/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Browser" Foreground="#90A6BC"/><ComboBox x:Name="EnvironmentBrowserBox" Height="36" Margin="0,4,0,0"><ComboBoxItem Content="Chrome"/><ComboBoxItem Content="Edge"/></ComboBox></StackPanel>
+                                                <StackPanel Grid.Column="4"><TextBlock Text="Default test data" Foreground="#90A6BC"/><ComboBox x:Name="EnvironmentDataSetBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                            </Grid>
+                                            <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <CheckBox x:Name="EnvironmentDefaultCheck" Content="Default environment" VerticalAlignment="Center"/>
+                                                <Button Grid.Column="1" x:Name="NewEnvironmentButton" Content="＋ New" Click="NewEnvironment_Click"/>
+                                                <Button Grid.Column="3" x:Name="SaveEnvironmentButton" Content="Save environment" Style="{StaticResource PrimaryButton}" Click="SaveEnvironment_Click"/>
+                                                <Button Grid.Column="5" x:Name="DeleteEnvironmentButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteEnvironment_Click"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                                <Border Grid.Column="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <StackPanel><TextBlock x:Name="SchedulingTitleText" Text="Scheduled suite runs" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="SchedulingHelpText" Text="Register recurring web regressions in Windows Task Scheduler. Scheduled runs use QAFlow's headless suite entry point." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <DataGrid Grid.Row="2" x:Name="SchedulesGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="SchedulesGrid_SelectionChanged">
+                                            <DataGrid.Columns><DataGridTextColumn Header="Schedule" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="Frequency" Binding="{Binding Frequency}" Width="80"/><DataGridTextColumn Header="Time" Binding="{Binding TimeOfDay}" Width="60"/><DataGridCheckBoxColumn Header="Enabled" Binding="{Binding Enabled}" Width="65"/><DataGridTextColumn Header="Task" Binding="{Binding TaskName}" Width="1.4*"/></DataGrid.Columns>
+                                        </DataGrid>
+                                        <Grid Grid.Row="4">
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Name" Foreground="#90A6BC"/><TextBox x:Name="ScheduleNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Suite" Foreground="#90A6BC"/><ComboBox x:Name="ScheduleSuiteBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                            </Grid>
+                                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Environment" Foreground="#90A6BC"/><ComboBox x:Name="ScheduleEnvironmentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Frequency" Foreground="#90A6BC"/><ComboBox x:Name="ScheduleFrequencyBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                <StackPanel Grid.Column="4"><TextBlock Text="Time (HH:mm)" Foreground="#90A6BC"/><TextBox x:Name="ScheduleTimeBox" Text="22:00" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                            </Grid>
+                                            <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock Text="Weekly days (MON,TUE...)" Foreground="#90A6BC"/><TextBox x:Name="ScheduleDaysBox" Text="MON" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom"><CheckBox x:Name="ScheduleEnabledCheck" Content="Enabled" IsChecked="True" Margin="0,0,10,8"/><CheckBox x:Name="ScheduleSendCheck" Content="Send report" IsChecked="True" Margin="0,0,0,8"/></StackPanel>
+                                                <Button Grid.Column="4" x:Name="SaveScheduleButton" Content="Save" Click="SaveSchedule_Click" VerticalAlignment="Bottom"/>
+                                                <Button Grid.Column="6" x:Name="RegisterScheduleButton" Content="Register in Windows" Style="{StaticResource PrimaryButton}" Click="RegisterSchedule_Click" VerticalAlignment="Bottom"/>
+                                                <Button Grid.Column="8" x:Name="DeleteScheduleButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteSchedule_Click" VerticalAlignment="Bottom"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="QueueMatrixTab" Header="Run Queue &amp; Browser Matrix">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="QueueTitleText" Text="Run queue &amp; browser matrix" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="QueueHelpText" Text="Queue the selected suite for Chrome, Edge or both. QAFlow runs independent web jobs in parallel with a controlled concurrency limit." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <Border Grid.Row="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock x:Name="QueueSuiteLabel" Text="Selected suite" Foreground="#90A6BC"/>
+                                            <TextBlock x:Name="QueueSuiteText" Text="—" FontWeight="SemiBold" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock x:Name="QueueEnvironmentLabel" Text="Environment" Foreground="#90A6BC"/>
+                                            <ComboBox x:Name="QueueEnvironmentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,0,7"><CheckBox x:Name="QueueChromeCheck" Content="Chrome" IsChecked="True"/></StackPanel>
+                                        <StackPanel Grid.Column="6" VerticalAlignment="Bottom" Margin="0,0,0,7"><CheckBox x:Name="QueueEdgeCheck" Content="Edge" IsChecked="True"/></StackPanel>
+                                        <StackPanel Grid.Column="8">
+                                            <TextBlock x:Name="ConcurrencyLabel" Text="Parallel" Foreground="#90A6BC"/>
+                                            <ComboBox x:Name="ConcurrencyBox" Height="36" Margin="0,4,0,0"><ComboBoxItem Content="1"/><ComboBoxItem Content="2" IsSelected="True"/><ComboBoxItem Content="3"/><ComboBoxItem Content="4"/></ComboBox>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <DataGrid Grid.Row="4" x:Name="RunQueueGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Batch" Binding="{Binding BatchDisplay}" Width="80"/>
+                                        <DataGridTextColumn Header="Suite" Binding="{Binding SuiteName}" Width="1.5*"/>
+                                        <DataGridTextColumn Header="Environment" Binding="{Binding EnvironmentName}" Width="120"/>
+                                        <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="90"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="105"/>
+                                        <DataGridTextColumn Header="Created" Binding="{Binding CreatedDisplay}" Width="145"/>
+                                        <DataGridTextColumn Header="Duration" Binding="{Binding DurationDisplay}" Width="90"/>
+                                        <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Grid Grid.Row="6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <CheckBox x:Name="StopBatchOnFailureCheck" Content="Stop remaining matrix jobs when one browser fails"/>
+                                        <TextBlock x:Name="QueueStateText" Text="Queue idle" Foreground="#7890A8" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" x:Name="QueueMatrixButton" Content="＋ Queue browser matrix" Click="QueueMatrix_Click"/>
+                                    <Button Grid.Column="3" x:Name="StartQueueButton" Content="▶ Start queue" Style="{StaticResource PrimaryButton}" Click="StartQueue_Click"/>
+                                    <Button Grid.Column="5" x:Name="CancelQueueButton" Content="Stop" Style="{StaticResource DangerButton}" Click="CancelQueue_Click" IsEnabled="False"/>
+                                    <Button Grid.Column="7" x:Name="OpenQueuedReportButton" Content="Open report" Click="OpenQueuedReport_Click"/>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="QualityAnalyticsTab" Header="Quality Intelligence">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="QualityTitleText" Text="Quality intelligence" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="QualityHelpText" Text="Use execution history to identify flaky tests, recurring failure patterns and quality trends without changing test logic." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <Border Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityPassLabel" Text="HISTORICAL PASS RATE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityPassText" Text="0%" FontSize="24" FontWeight="SemiBold" Foreground="#3DDC97"/></StackPanel></Border>
+                                    <Border Grid.Column="2" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityFlakyLabel" Text="FLAKY TESTS" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityFlakyText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="#F4B860"/></StackPanel></Border>
+                                    <Border Grid.Column="4" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityFailuresLabel" Text="RECURRING FAILURES" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityFailuresText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="#FF6577"/></StackPanel></Border>
+                                    <Border Grid.Column="6" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityRunsLabel" Text="SUITE RUNS" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityRunsText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="#77C9FF"/></StackPanel></Border>
+                                </Grid>
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.15*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1.2*"/></Grid.ColumnDefinitions>
+                                    <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="6"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <TextBlock x:Name="StabilityTitleText" Text="Test stability" FontWeight="SemiBold"/>
+                                        <DataGrid Grid.Row="2" x:Name="StabilityGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Test case" Binding="{Binding DisplayName}" Width="2*"/>
+                                                <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="80"/>
+                                                <DataGridTextColumn Header="Classification" Binding="{Binding Classification}" Width="120"/>
+                                                <DataGridTextColumn Header="Runs" Binding="{Binding Runs}" Width="55"/>
+                                                <DataGridTextColumn Header="Failure" Binding="{Binding FailureRate, StringFormat={}{0}%}" Width="65"/>
+                                                <DataGridTextColumn Header="Stability" Binding="{Binding StabilityScore, StringFormat={}{0}%}" Width="70"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <TextBlock Grid.Row="4" x:Name="StabilityHintText" Text="Flaky classification requires both successful and unsuccessful historical outcomes; QAFlow never changes the test automatically." Foreground="#7FA4C3" TextWrapping="Wrap"/>
+                                    </Grid>
+                                    <Grid Grid.Column="2"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="6"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="135"/></Grid.RowDefinitions>
+                                        <TextBlock x:Name="FailureClustersTitleText" Text="Failure clusters" FontWeight="SemiBold"/>
+                                        <DataGrid Grid.Row="2" x:Name="FailureClustersGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="55"/>
+                                                <DataGridTextColumn Header="Message" Binding="{Binding SampleMessage}" Width="2*"/>
+                                                <DataGridTextColumn Header="Cases" Binding="{Binding TestCaseCount}" Width="55"/>
+                                                <DataGridTextColumn Header="Browsers" Binding="{Binding Browsers}" Width="90"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <TextBlock Grid.Row="4" x:Name="TrendTitleText" Text="Recent suite trend" FontWeight="SemiBold"/>
+                                        <DataGrid Grid.Row="6" x:Name="AnalyticsTrendGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="AnalyticsTrendGrid_SelectionChanged">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Started" Binding="{Binding StartedDisplay}" Width="135"/>
+                                                <DataGridTextColumn Header="Suite" Binding="{Binding SuiteName}" Width="*"/>
+                                                <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="75"/>
+                                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="85"/>
+                                                <DataGridTextColumn Header="Pass" Binding="{Binding PassRate, StringFormat={}{0}%}" Width="58"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Grid>
+                                </Grid>
+                                <Grid Grid.Row="6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="QualityStateText" Text="Select a project to analyze its local automation history." Foreground="#7890A8" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" x:Name="RefreshQualityButton" Content="Refresh" Click="RefreshQuality_Click"/>
+                                    <Button Grid.Column="3" x:Name="ExportQualityButton" Content="Export HTML" Click="ExportQuality_Click"/>
+                                    <Button Grid.Column="5" x:Name="RerunFailedButton" Content="↻ Rerun failed cases" Style="{StaticResource PrimaryButton}" Click="RerunFailed_Click" IsEnabled="False"/>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="RecordedSessionsTab" Header="Recorded Sessions">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="310"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                    <StackPanel>
+                                        <TextBlock x:Name="RecordedSessionsHelpText" Text="Convert finished Recorder sessions into draft web test cases." FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="RecordedSessionsScopeText" Text="Only activity inside the project Base URL becomes an automation candidate." Foreground="#7FA4C3" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <DataGrid Grid.Row="2" x:Name="RecordedSessionsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="RecordedSessionsGrid_SelectionChanged">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Session" Binding="{Binding DisplayName}" Width="*"/>
+                                            <DataGridTextColumn Header="Date" Binding="{Binding StartedDisplay}" Width="115"/>
+                                            <DataGridTextColumn Header="Steps" Binding="{Binding ActionCount}" Width="54"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <Border Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock x:Name="TargetSuiteLabel" Text="Target suite" Foreground="#90A6BC"/>
+                                                <ComboBox x:Name="ConversionSuiteBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="ConversionSuiteBox_SelectionChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock x:Name="ConversionNameLabel" Text="Test case name" Foreground="#90A6BC"/>
+                                                <TextBox x:Name="ConversionNameBox" Height="38" Margin="0,4,0,0" VerticalContentAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="2" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock Text="RECORDED" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewTotalText" Text="0" FontSize="20" FontWeight="SemiBold"/></StackPanel>
+                                            <StackPanel Grid.Column="1"><TextBlock x:Name="PreviewWebLabel" Text="WEB IN SCOPE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewWebText" Text="0" FontSize="20" FontWeight="SemiBold" Foreground="#3DDC97"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="PreviewManualLabel" Text="MANUAL / EVIDENCE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewManualText" Text="0" FontSize="20" FontWeight="SemiBold" Foreground="#F4B860"/></StackPanel>
+                                            <StackPanel Grid.Column="3"><TextBlock x:Name="PreviewConfidenceLabel" Text="READINESS" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewConfidenceText" Text="0%" FontSize="20" FontWeight="SemiBold" Foreground="#77C9FF"/></StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <DataGrid Grid.Row="4" x:Name="ConversionPreviewGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="65"/>
+                                            <DataGridTextColumn Header="Scope" Binding="{Binding ScopeDisplay}" Width="75"/>
+                                            <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="80"/>
+                                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="2*"/>
+                                            <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="1.4*"/>
+                                            <DataGridTextColumn Header="Selector" Binding="{Binding Selector}" Width="1.6*"/>
+                                            <DataGridTextColumn Header="Confidence" Binding="{Binding Confidence}" Width="85"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                    <Grid Grid.Row="6">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="ConversionHintText" Text="Phase 9 keeps data-driven execution, secure secrets, suite orchestration and adds reusable environments and scheduled runs." Foreground="#7FA4C3" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" x:Name="ConvertSessionButton" Content="Convert to Test Case" Style="{StaticResource PrimaryButton}" Padding="16,9" Click="ConvertSession_Click" IsEnabled="False"/>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <TextBlock x:Name="StatusText" Text="Local workspace · Phase 11 quality intelligence enabled · web automation only · desktop automation disabled" Foreground="#7890A8" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" x:Name="SaveButton" Content="Save workspace" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+            <Button Grid.Column="3" x:Name="CloseButton" Content="Close" Click="Close_Click"/>
+        </Grid>
+    </Grid>
+</Window>

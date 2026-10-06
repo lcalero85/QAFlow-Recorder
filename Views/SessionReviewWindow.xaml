@@ -1,0 +1,58 @@
+<Window x:Class="QAFlowRecorder.Views.SessionReviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Review session — QAFlow" Width="980" Height="720" MinWidth="860" MinHeight="620"
+        WindowStartupLocation="CenterOwner" Background="#090D14" Foreground="#F3F7FC" ShowInTaskbar="False"
+        Icon="pack://application:,,,/Assets/qaflow.ico">
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="48" Height="48" Margin="0,0,12,0"/>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock x:Name="TitleText" Text="Review session" FontSize="23" FontWeight="SemiBold"/>
+                <TextBlock x:Name="SubtitleText" Text="Clean up the captured flow before generating the final QA documentation." Foreground="#91A7BF" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Margin="0,16,0,12" Background="#101A28" BorderBrush="#26384E" BorderThickness="1" CornerRadius="10" Padding="14">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <StackPanel><TextBlock x:Name="CapturedLabel" Text="CAPTURED STEPS" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="CapturedValue" Text="0" FontSize="21" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="1"><TextBlock x:Name="CheckpointLabel" Text="SMART CHECKPOINTS" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="CheckpointValue" Text="0" FontSize="21" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="2"><TextBlock x:Name="IncludedLabel" Text="INCLUDED IN REPORT" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="IncludedValue" Text="0" FontSize="21" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="3"><TextBlock x:Name="RiskLabel" Text="HIGH-RISK AREAS" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="RiskValue" Text="0" FontSize="21" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="4"><TextBlock x:Name="QualityLabel" Text="REPORT READY" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="QualityValue" Text="100%" FontSize="21" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid Grid.Row="2" x:Name="ReviewGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                  HeadersVisibility="Column" SelectionMode="Single" RowHeaderWidth="0" FontSize="11" CellEditEnding="ReviewGrid_CellEditEnding">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn x:Name="IncludeColumn" Header="Include" Binding="{Binding Include, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="62"/>
+                <DataGridTextColumn x:Name="TimeColumn" Header="Time" Binding="{Binding Time}" IsReadOnly="True" Width="68"/>
+                <DataGridTextColumn x:Name="TargetColumn" Header="Application / window" Binding="{Binding Target}" IsReadOnly="True" Width="210"/>
+                <DataGridTextColumn x:Name="DescriptionColumn" Header="Professional step description" Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="270"/>
+                <DataGridCheckBoxColumn x:Name="ImportantColumn" Header="Key" Binding="{Binding Important, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="52"/>
+                <DataGridCheckBoxColumn x:Name="MaskColumn" Header="Mask" Binding="{Binding MaskSensitive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="56"/>
+                <DataGridCheckBoxColumn x:Name="CheckpointColumn" Header="Stage" Binding="{Binding Checkpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="58"/>
+                <DataGridTextColumn x:Name="StageColumn" Header="Stage title" Binding="{Binding CheckpointTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="3" Margin="0,14,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <TextBlock x:Name="HintText" Text="Tip: remove noise, rename unclear steps, and keep important checkpoints. Original evidence is never deleted." Foreground="#8198B0" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            <Button Grid.Column="1" x:Name="SaveBaselineButton" Content="Update visual baseline" Width="165" Click="SaveBaseline_Click"/>
+            <Button Grid.Column="3" x:Name="SaveFlowButton" Content="Save reusable flow" Width="150" Click="SaveFlow_Click"/>
+            <Button Grid.Column="5" x:Name="CancelButton" Content="Back" Width="90" IsCancel="True"/>
+            <Button Grid.Column="7" x:Name="ContinueButton" Content="Continue to export" Width="170" Style="{StaticResource PrimaryButton}" Click="Continue_Click"/>
+        </Grid>
+    </Grid>
+</Window>
