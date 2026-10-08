@@ -56,6 +56,32 @@ public sealed class SessionStore
         return File.WriteAllTextAsync(SettingsFile, JsonSerializer.Serialize(settings, JsonOptions));
     }
 
+
+    public Task DeleteAsync(TestSession session)
+    {
+        if (session is null) return Task.CompletedTask;
+        var dir = Path.Combine(SessionRoot, session.Id.ToString("N"));
+        try
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+        }
+        catch (IOException) { throw; }
+        catch (UnauthorizedAccessException) { throw; }
+        return Task.CompletedTask;
+    }
+
+    public Task ClearHistoryAsync()
+    {
+        if (!Directory.Exists(SessionRoot)) return Task.CompletedTask;
+        foreach (var dir in Directory.EnumerateDirectories(SessionRoot))
+        {
+            try { Directory.Delete(dir, true); }
+            catch (DirectoryNotFoundException) { }
+        }
+        Directory.CreateDirectory(SessionRoot);
+        return Task.CompletedTask;
+    }
+
     public string SessionFolder(TestSession session)
     {
         var path = Path.Combine(SessionRoot, session.Id.ToString("N"));

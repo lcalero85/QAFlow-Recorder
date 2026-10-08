@@ -48,6 +48,32 @@ public static class PrivacyMaskService
         catch { return false; }
     }
 
+
+    public static BitmapSource ApplyZones(BitmapSource source, IEnumerable<PrivacyZone>? zones, string? windowTitle)
+    {
+        var active = zones?.Where(z => z.Enabled && z.Width > 0 && z.Height > 0 &&
+            (string.IsNullOrWhiteSpace(z.WindowTitleContains) || (!string.IsNullOrWhiteSpace(windowTitle) && windowTitle.Contains(z.WindowTitleContains, StringComparison.OrdinalIgnoreCase))))
+            .ToList() ?? [];
+        if (active.Count == 0) return source;
+
+        var wb = new WriteableBitmap(source);
+        var width = wb.PixelWidth;
+        var height = wb.PixelHeight;
+        foreach (var zone in active)
+        {
+            var x = (int)Math.Clamp(zone.X * width, 0, Math.Max(0, width - 1));
+            var y = (int)Math.Clamp(zone.Y * height, 0, Math.Max(0, height - 1));
+            var w = (int)Math.Clamp(zone.Width * width, 1, Math.Max(1, width - x));
+            var h = (int)Math.Clamp(zone.Height * height, 1, Math.Max(1, height - y));
+            var rect = new Int32Rect(x, y, w, h);
+            var stride = rect.Width * 4;
+            var pixels = new byte[stride * rect.Height];
+            for (var i = 0; i < pixels.Length; i += 4) { pixels[i] = 25; pixels[i + 1] = 23; pixels[i + 2] = 22; pixels[i + 3] = 255; }
+            wb.WritePixels(rect, pixels, stride, 0);
+        }
+        wb.Freeze();
+        return wb;
+    }
     private static bool LooksSensitive(QaEvent ev)
     {
         var s = $"{ev.Description} {ev.TargetTitle} {ev.WindowTitle}".ToLowerInvariant();

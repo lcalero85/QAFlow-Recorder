@@ -129,6 +129,8 @@ public sealed class TestSession
     public bool IsMultipart { get; set; }
     public Guid? ReferenceFlowId { get; set; }
     public string ReferenceFlowName { get; set; } = "";
+    public string Folder { get; set; } = "";
+    public List<string> Tags { get; set; } = [];
     public List<ReusableFlowStep> ReferenceFlowSteps { get; set; } = [];
     public string CharterObjective { get; set; } = "";
     public string CharterScope { get; set; } = "";
@@ -156,6 +158,8 @@ public sealed class TestSession
     [JsonIgnore] public string StartedDisplay => StartedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm");
     [JsonIgnore] public string HistoryStatus => State == SessionState.Finished ? (ErrorCount > 0 ? "Findings" : "Completed") : State.ToString();
     [JsonIgnore] public string PartDisplay => IsMultipart ? $"Part {PartNumber}" : "—";
+    [JsonIgnore] public string TagsDisplay => Tags.Count == 0 ? "—" : string.Join(", ", Tags);
+    [JsonIgnore] public string FolderDisplay => string.IsNullOrWhiteSpace(Folder) ? "—" : Folder;
 }
 
 
@@ -191,6 +195,20 @@ public sealed class AppSettings
     public string WebAutomationAllowedDomains { get; set; } = "";
     public string WebAutomationDefaultBrowser { get; set; } = "Chrome";
     public bool CaptureOutOfScopeAsEvidence { get; set; } = true;
+    public List<PrivacyZone> PrivacyZones { get; set; } = [];
+}
+
+public sealed class PrivacyZone
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = "Private area";
+    public string WindowTitleContains { get; set; } = "";
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public bool Enabled { get; set; } = true;
+    [JsonIgnore] public string ScopeDisplay => string.IsNullOrWhiteSpace(WindowTitleContains) ? "All captured windows" : WindowTitleContains;
 }
 
 

@@ -1,7 +1,7 @@
 <Window x:Class="QAFlowRecorder.Views.ExportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Export session" Width="440" Height="570" MinWidth="420" MinHeight="520"
+        Title="Export session" Width="456" Height="570" MinWidth="456" MinHeight="520"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#090D14" Foreground="#F3F7FC" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid Margin="16">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

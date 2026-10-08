@@ -166,7 +166,8 @@ public partial class MainWindow : Window
             if (bitmap is null) return;
             if (_settings.PrivacyMasking == PrivacyMaskMode.Automatic && ev.Kind == EventKind.Input) ev.MaskSensitiveEvidence = true;
             var protectedBitmap = PrivacyMaskService.Apply(bitmap, ev, targetWindow, _settings.PrivacyMasking);
-            var path = DesktopCaptureService.SavePng(protectedBitmap, _store.EvidenceFolder(_session), "interaction");
+            var zoneProtectedBitmap = PrivacyMaskService.ApplyZones(protectedBitmap, _settings.PrivacyZones, ev.WindowTitle);
+            var path = DesktopCaptureService.SavePng(zoneProtectedBitmap, _store.EvidenceFolder(_session), "interaction");
             _session.Screenshots.Add(new EvidenceShot
             {
                 Timestamp = DateTimeOffset.Now,
@@ -176,7 +177,7 @@ public partial class MainWindow : Window
                 FilePath = path,
                 FullPage = false,
                 EventId = ev.Id,
-                SensitiveMaskApplied = !ReferenceEquals(protectedBitmap, bitmap)
+                SensitiveMaskApplied = !ReferenceEquals(protectedBitmap, bitmap) || !ReferenceEquals(zoneProtectedBitmap, protectedBitmap)
             });
         }
         finally
@@ -199,7 +200,9 @@ public partial class MainWindow : Window
             var bitmap = DesktopCaptureService.CaptureWindowFromScreen(hwnd)
                          ?? DesktopCaptureService.CapturePrimaryScreen();
             if (bitmap is null) return null;
-            var path = DesktopCaptureService.SavePng(bitmap, _store.EvidenceFolder(_session), kind.ToString().ToLowerInvariant());
+            var windowTitle = DesktopCaptureService.GetWindowTitle(hwnd);
+            var protectedBitmap = PrivacyMaskService.ApplyZones(bitmap, _settings.PrivacyZones, windowTitle);
+            var path = DesktopCaptureService.SavePng(protectedBitmap, _store.EvidenceFolder(_session), kind.ToString().ToLowerInvariant());
             _session.Screenshots.Add(new EvidenceShot
             {
                 Timestamp = DateTimeOffset.Now,
@@ -207,7 +210,8 @@ public partial class MainWindow : Window
                 TargetTitle = string.IsNullOrWhiteSpace(targetTitle) ? _desktopRecorder.LastTargetTitle : targetTitle!,
                 Url = "",
                 FilePath = path,
-                FullPage = false
+                FullPage = false,
+                SensitiveMaskApplied = !ReferenceEquals(protectedBitmap, bitmap)
             });
             return path;
         }
@@ -230,6 +234,8 @@ public partial class MainWindow : Window
         {
             Name = baseName,
             BaseName = baseName,
+            Folder = SessionFolderBox.Text.Trim(),
+            Tags = SessionTagsBox.Text.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             Tester = _settings.QaName,
             Template = TemplateBox.SelectedIndex switch { 1 => "Regression", 2 => "UAT", 3 => "Smoke", 4 => "Exploratory", _ => "Functional Normal" },
             StartedAt = DateTimeOffset.Now,
@@ -257,6 +263,7 @@ public partial class MainWindow : Window
         PauseButton.IsEnabled = true;
         FinishButton.IsEnabled = true;
         SessionNameBox.IsEnabled = false;
+        OrganizationExpander.IsEnabled = false;
         TemplateBox.IsEnabled = false;
         CharterExpander.IsEnabled = false;
         ReferenceFlowBox.IsEnabled = false; ManageFlowsButton.IsEnabled = false;
@@ -313,6 +320,8 @@ public partial class MainWindow : Window
             {
                 Name = current.BaseName,
                 BaseName = current.BaseName,
+                Folder = current.Folder,
+                Tags = [.. current.Tags],
                 Tester = current.Tester,
                 Template = current.Template,
                 StartedAt = DateTimeOffset.Now,
@@ -401,6 +410,7 @@ public partial class MainWindow : Window
             StartButton.IsEnabled = true;
             PauseButton.IsEnabled = false;
             SessionNameBox.IsEnabled = true;
+            OrganizationExpander.IsEnabled = true;
             TemplateBox.IsEnabled = true;
             CharterExpander.IsEnabled = true;
             ReferenceFlowBox.IsEnabled = true; ManageFlowsButton.IsEnabled = true;
@@ -461,7 +471,8 @@ public partial class MainWindow : Window
             parts = parts.OrderBy(s => s.PartNumber).ToList();
 
             var path = await new ExportService(_settings).ExportSeriesAsync(parts, dlg.ExportTc, dlg.ExportBug, dlg.ExportPdf, dlg.ExportZip);
-            StatusBar.Text = $"{Localizer.T("Exported", _settings.UiLanguage)}: {path}";
+            StatusBar.Text = $"{Localizer.T("Exported", _settings.UiLanguage)}: {Path.GetFileName(path)}";
+            StatusBar.ToolTip = path;
             var open = AppDialogWindow.ShowQuestion(this, "QAFlow Recorder",
                 es ? $"Exportación completada.\n\n¿Deseas abrir la ubicación?" : "Export completed.\n\nOpen the location?",
                 _settings.UiLanguage);
@@ -514,11 +525,12 @@ public partial class MainWindow : Window
             }
             var bitmap = DesktopCaptureService.CaptureWindowFromScreen(targetHwnd) ?? DesktopCaptureService.CapturePrimaryScreen();
             if (bitmap is null) return;
+            var protectedBitmap = PrivacyMaskService.ApplyZones(bitmap, _settings.PrivacyZones, targetTitle);
 
             var bugFolder = Path.Combine(_store.SessionFolder(_session), "bugs", DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));
             Directory.CreateDirectory(bugFolder);
-            var original = DesktopCaptureService.SavePng(bitmap, bugFolder, "original");
-            var markup = new ScreenshotMarkupWindow(bitmap, bugFolder, _settings.UiLanguage);
+            var original = DesktopCaptureService.SavePng(protectedBitmap, bugFolder, "original");
+            var markup = new ScreenshotMarkupWindow(protectedBitmap, bugFolder, _settings.UiLanguage);
             if (markup.ShowDialog() != true) return;
             var marked = string.IsNullOrWhiteSpace(markup.SavedPath) ? original : markup.SavedPath;
             var details = new BugDetailsWindow(marked, bugFolder, _settings.UiLanguage, "", targetTitle);
@@ -609,7 +621,100 @@ public partial class MainWindow : Window
         var q = HistorySearch.Text.Trim();
         HistoryGrid.ItemsSource = string.IsNullOrWhiteSpace(q)
             ? _history
-            : _history.Where(s => s.DisplayName.Contains(q, StringComparison.OrdinalIgnoreCase) || s.StartedDisplay.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+            : _history.Where(s => s.DisplayName.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || s.StartedDisplay.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || s.Folder.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || s.Tags.Any(t => t.Contains(q, StringComparison.OrdinalIgnoreCase))).ToList();
+    }
+
+    private async void DeleteHistorySelected_Click(object sender, RoutedEventArgs e)
+    {
+        if (HistoryGrid.SelectedItem is not TestSession selected)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder",
+                _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase)
+                    ? "Selecciona una sesión del historial para eliminarla."
+                    : "Select a history session to delete.", _settings.UiLanguage);
+            return;
+        }
+
+        if (_session?.Id == selected.Id && _session.State is SessionState.Recording or SessionState.Paused)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder",
+                _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase)
+                    ? "No puedes eliminar una sesión mientras está activa."
+                    : "An active session cannot be deleted.", _settings.UiLanguage);
+            return;
+        }
+
+        var name = string.IsNullOrWhiteSpace(selected.DisplayName) ? selected.Name : selected.DisplayName;
+        var confirm = AppDialogWindow.ShowQuestion(this, "QAFlow Recorder",
+            _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase)
+                ? $"¿Eliminar permanentemente la sesión '{name}' y su evidencia local?"
+                : $"Permanently delete session '{name}' and its local evidence?", _settings.UiLanguage);
+        if (!confirm) return;
+
+        try
+        {
+            await _store.DeleteAsync(selected);
+            if (_session?.Id == selected.Id && _session.State == SessionState.Finished) _session = null;
+            await ReloadHistoryAsync();
+            HistorySearch.Clear();
+        }
+        catch (Exception ex)
+        {
+            AppDialogWindow.ShowError(this, "QAFlow Recorder",
+                (_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "No se pudo eliminar la sesión: " : "Could not delete the session: ") + ex.Message,
+                _settings.UiLanguage);
+        }
+    }
+
+    private async void ClearHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session?.State is SessionState.Recording or SessionState.Paused)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder",
+                _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase)
+                    ? "Finaliza o pausa definitivamente la sesión activa antes de limpiar el historial."
+                    : "Finish the active session before clearing history.", _settings.UiLanguage);
+            return;
+        }
+
+        if (_history.Count == 0) return;
+        var confirm = AppDialogWindow.ShowQuestion(this, "QAFlow Recorder",
+            _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase)
+                ? "¿Eliminar todo el historial de sesiones y su evidencia local? Esta acción no se puede deshacer."
+                : "Delete all session history and its local evidence? This cannot be undone.", _settings.UiLanguage);
+        if (!confirm) return;
+
+        try
+        {
+            await _store.ClearHistoryAsync();
+            _history.Clear();
+            HistoryGrid.ItemsSource = null;
+            HistoryGrid.ItemsSource = _history;
+            HistorySearch.Clear();
+            if (_session?.State == SessionState.Finished) _session = null;
+        }
+        catch (Exception ex)
+        {
+            AppDialogWindow.ShowError(this, "QAFlow Recorder",
+                (_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "No se pudo limpiar el historial: " : "Could not clear history: ") + ex.Message,
+                _settings.UiLanguage);
+        }
+    }
+
+    private void TimelineHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (HistoryGrid.SelectedItem is not TestSession selected)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder",
+                _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Selecciona una sesión para abrir su línea de tiempo." : "Select a session to open its evidence timeline.",
+                _settings.UiLanguage);
+            return;
+        }
+        var dlg = new EvidenceTimelineWindow(selected, _settings.UiLanguage) { Owner = this };
+        dlg.ShowDialog();
     }
 
     private void HistoryGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -617,6 +722,8 @@ public partial class MainWindow : Window
         if (HistoryGrid.SelectedItem is not TestSession s) return;
         _session = s;
         SessionNameBox.Text = string.IsNullOrWhiteSpace(s.BaseName) ? s.Name : s.BaseName;
+        SessionFolderBox.Text = s.Folder;
+        SessionTagsBox.Text = string.Join(", ", s.Tags);
         TemplateBox.SelectedIndex = s.Template switch { "Regression" => 1, "UAT" => 2, "Smoke" => 3, "Exploratory" => 4, _ => 0 };
         RefreshMetrics();
         ShowView("Recorder");
@@ -657,6 +764,7 @@ public partial class MainWindow : Window
         FileTemplateBox.Text = _settings.FileNameTemplate;
         ExportFolderBox.Text = _settings.ExportFolder;
         PrivacyMaskBox.SelectedIndex = _settings.PrivacyMasking switch { PrivacyMaskMode.Manual => 1, PrivacyMaskMode.Off => 2, _ => 0 };
+        PrivacyZonesHelpText.Text = (_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Zonas de privacidad configuradas: " : "Configured privacy zones: ") + _settings.PrivacyZones.Count;
         CoverageTargetsBox.Text = _settings.ExpectedCoverageTargets;
         VisualComparisonCheck.IsChecked = _settings.IncludeVisualComparison;
         EvidenceQualityCheck.IsChecked = _settings.IncludeEvidenceQuality;
@@ -667,6 +775,18 @@ public partial class MainWindow : Window
         CaptureOutOfScopeCheck.IsChecked = _settings.CaptureOutOfScopeAsEvidence;
         RefreshProductModeUi();
         RefreshCapabilityNavigation();
+    }
+
+    private void ManagePrivacyZones_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new PrivacyZoneEditorWindow(_settings.PrivacyZones, _settings.UiLanguage, _desktopRecorder.LastTargetWindow) { Owner = this };
+        if (dlg.ShowDialog() != true) return;
+        _settings.PrivacyZones = dlg.Zones.Select(z => new PrivacyZone
+        {
+            Id = z.Id, Name = z.Name, WindowTitleContains = z.WindowTitleContains,
+            X = z.X, Y = z.Y, Width = z.Width, Height = z.Height, Enabled = z.Enabled
+        }).ToList();
+        PrivacyZonesHelpText.Text = (_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Zonas de privacidad configuradas: " : "Configured privacy zones: ") + _settings.PrivacyZones.Count;
     }
 
     private async void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -745,7 +865,7 @@ public partial class MainWindow : Window
     {
         var l = _settings.UiLanguage;
         var es = l.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
-        ProductSubtitleText.Text = es ? "Grabador de evidencia QA de escritorio" : "Desktop QA evidence recorder";
+        ProductSubtitleText.Text = es ? "Grabador QA" : "QA evidence recorder";
         if (_session is null) StateText.Text = Localizer.T("NoSession", l);
         NavRecorder.Content = "●  " + Localizer.T("Recorder", l);
         NavProjects.Content = es ? "Proyectos" : "Projects";
@@ -755,6 +875,11 @@ public partial class MainWindow : Window
         RecorderTitleText.Text = es ? "Captura tu flujo QA" : "Capture your QA flow";
         RecorderSubtitleText.Text = es ? "Trabaja con normalidad. QAFlow registra interacciones y evidencia visual del escritorio y crea un reporte QA claro." : "Work naturally. QAFlow records desktop interactions and visual evidence, then builds a clear QA report.";
         SessionNameLabel.Text = Localizer.T("SessionName", l);
+        OrganizationExpander.Header = es ? "Organización (opcional)" : "Organization (optional)";
+        SessionFolderLabel.Text = es ? "Carpeta / proyecto" : "Folder / project";
+        SessionTagsLabel.Text = es ? "Etiquetas" : "Tags";
+        SessionFolderBox.ToolTip = es ? "Ej. Sprint 24 / Checkout" : "E.g. Sprint 24 / Checkout";
+        SessionTagsBox.ToolTip = es ? "Etiquetas separadas por coma, ej. regresión, checkout, staging" : "Comma-separated tags, e.g. regression, checkout, staging";
         TestTypeLabel.Text = Localizer.T("TestType", l);
         CharterExpander.Header = es ? "Charter exploratorio (opcional)" : "Exploratory charter (optional)";
         CharterObjectiveLabel.Text = es ? "Objetivo" : "Objective";
@@ -780,12 +905,19 @@ public partial class MainWindow : Window
 
         HistoryTitleText.Text = Localizer.T("History", l);
         HistorySubtitleText.Text = es ? "Revisa sesiones guardadas y grabaciones divididas en partes." : "Review saved sessions and multipart recordings.";
-        HistorySearch.ToolTip = es ? "Buscar por sesión o fecha" : "Search by session or date";
-        if (HistoryGrid.Columns.Count >= 3)
+        HistorySearch.ToolTip = es ? "Buscar por sesión, carpeta, etiqueta o fecha" : "Search by session, folder, tag or date";
+        TimelineHistoryButton.Content = es ? "Evidencia" : "Timeline";
+        TimelineHistoryButton.ToolTip = es ? "Abrir línea de tiempo de evidencia" : "Open evidence timeline";
+        DeleteHistoryButton.Content = es ? "Eliminar" : "Delete";
+        DeleteHistoryButton.ToolTip = es ? "Eliminar la sesión seleccionada" : "Delete selected session";
+        ClearHistoryButton.Content = es ? "Limpiar" : "Clear";
+        ClearHistoryButton.ToolTip = es ? "Eliminar todo el historial guardado" : "Delete all saved session history";
+        if (HistoryGrid.Columns.Count >= 4)
         {
             HistoryGrid.Columns[0].Header = es ? "Sesión" : "Session";
-            HistoryGrid.Columns[1].Header = es ? "Inicio" : "Started";
-            HistoryGrid.Columns[2].Header = es ? "Duración" : "Duration";
+            HistoryGrid.Columns[1].Header = es ? "Carpeta" : "Folder";
+            HistoryGrid.Columns[2].Header = es ? "Inicio" : "Started";
+            HistoryGrid.Columns[3].Header = es ? "Duración" : "Duration";
         }
 
         SettingsTitleText.Text = Localizer.T("Settings", l);
@@ -807,6 +939,9 @@ public partial class MainWindow : Window
         QualityLabel.Text = Localizer.T("Quality", l);
         DocLanguageLabel.Text = Localizer.T("DocLanguage", l);
         PrivacyMaskLabel.Text = es ? "Enmascarado de datos sensibles" : "Sensitive data masking";
+        ManagePrivacyZonesButton.Content = es ? "Administrar zonas de privacidad" : "Manage privacy zones";
+        ManagePrivacyZonesButton.ToolTip = es ? "Define áreas que siempre deben ocultarse en las capturas" : "Define areas that should always be hidden in screenshots";
+        PrivacyZonesHelpText.Text = (es ? "Zonas de privacidad configuradas: " : "Configured privacy zones: ") + _settings.PrivacyZones.Count;
         CoverageTargetsLabel.Text = es ? "Objetivos de cobertura (opcional)" : "Coverage targets (optional)";
         CoverageHelpText.Text = es ? "Si lo dejas vacío, QAFlow muestra la cobertura observada sin afirmar cobertura completa de la aplicación." : "If left empty, QAFlow reports the observed coverage footprint without claiming full application coverage.";
         VisualComparisonCheck.Content = es ? "Incluir comparación visual con baseline" : "Include baseline visual comparison";
@@ -821,6 +956,7 @@ public partial class MainWindow : Window
         FileTemplateLabel.Text = es ? "Plantilla de nombre de archivo" : "File name template";
         SaveSettingsButton.Content = Localizer.T("SaveSettings", l);
         PinButton.ToolTip = es ? "Mantener QAFlow siempre visible" : "Keep QAFlow always on top";
+        DownloadExtensionButton.ToolTip = es ? "Descargar extensión QAFlow para Chrome / Edge" : "Download QAFlow extension for Chrome / Edge";
         StatusBar.Text = Localizer.T("Ready", l);
 
         if (TemplateBox.Items.Count >= 5)
@@ -830,6 +966,43 @@ public partial class MainWindow : Window
             ((ComboBoxItem)TemplateBox.Items[2]).Content = "UAT";
             ((ComboBoxItem)TemplateBox.Items[3]).Content = "Smoke";
             ((ComboBoxItem)TemplateBox.Items[4]).Content = es ? "Exploratorio" : "Exploratory";
+        }
+    }
+
+
+    private void DownloadExtension_Click(object sender, RoutedEventArgs e)
+    {
+        var es = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            var source = Path.Combine(AppContext.BaseDirectory, "BrowserExtension", "QAFlow_Browser_Extension.zip");
+            if (!File.Exists(source))
+            {
+                // Visual Studio/source fallback.
+                var sourceFallback = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "BrowserExtension", "QAFlow_Browser_Extension.zip");
+                sourceFallback = Path.GetFullPath(sourceFallback);
+                if (File.Exists(sourceFallback)) source = sourceFallback;
+            }
+            if (!File.Exists(source))
+            {
+                AppDialogWindow.ShowError(this, es ? "Extensión no disponible" : "Extension unavailable",
+                    es ? "No se encontró el paquete de la extensión de navegador en esta instalación." : "The browser extension package was not found in this installation.", _settings.UiLanguage);
+                return;
+            }
+
+            var downloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+            Directory.CreateDirectory(downloads);
+            var destination = Path.Combine(downloads, "QAFlow_Browser_Extension_1.0.zip");
+            File.Copy(source, destination, true);
+            StatusBar.Text = es ? "Extensión descargada: QAFlow_Browser_Extension_1.0.zip" : "Extension downloaded: QAFlow_Browser_Extension_1.0.zip";
+            StatusBar.ToolTip = destination;
+            var open = AppDialogWindow.ShowQuestion(this, "QAFlow Recorder",
+                es ? "La extensión se copió a Descargas.\n\n¿Abrir la carpeta ahora?" : "The browser extension was copied to Downloads.\n\nOpen the folder now?", _settings.UiLanguage);
+            if (open) Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{destination}\"") { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppDialogWindow.ShowError(this, es ? "Error al descargar extensión" : "Extension download error", ex.Message, _settings.UiLanguage);
         }
     }
 

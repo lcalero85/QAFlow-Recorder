@@ -26,14 +26,15 @@
                     <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="42" Height="42" Stretch="Uniform"/>
                 </Border>
                 <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="QAFlow Recorder" FontWeight="SemiBold" FontSize="16"/>
-                    <TextBlock x:Name="ProductSubtitleText" Text="Desktop QA evidence recorder" Foreground="#7F96AE" FontSize="9.8" Margin="0,1,0,0"/>
+                    <TextBlock Text="QAFlow Recorder" FontWeight="SemiBold" FontSize="15.2"/>
+                    <TextBlock x:Name="ProductSubtitleText" Text="QA evidence recorder" Foreground="#7F96AE" FontSize="9.2" Margin="0,1,0,0"/>
                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                         <Ellipse x:Name="StateDot" Width="7" Height="7" Fill="#65758A" Margin="0,1,6,0"/>
                         <TextBlock x:Name="StateText" Text="No session" Foreground="#9AAEC3" FontSize="9.8"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="DownloadExtensionButton" Content="⬇ EXT" Width="56" Height="32" Padding="4,0" Margin="0,0,4,0" Background="#12243A" BorderBrush="#31577B" ToolTip="Download QAFlow browser extension" Click="DownloadExtension_Click"/>
                     <ComboBox x:Name="UiLanguageBox" Width="66" Height="32" Margin="0,0,4,0" SelectionChanged="UiLanguageBox_SelectionChanged"><ComboBoxItem Content="EN" IsSelected="True"/><ComboBoxItem Content="ES"/></ComboBox>
                     <Button x:Name="PinButton" Content="📌" Width="34" Height="32" Padding="0" Background="Transparent" BorderThickness="0" ToolTip="Keep panel always on top" Click="Pin_Click"/>
                     <Button Content="—" Width="34" Height="32" Padding="0" Background="Transparent" BorderThickness="0" Click="Min_Click"/>
@@ -66,6 +67,15 @@
 
                             <TextBlock x:Name="SessionNameLabel" Text="Session name" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
                             <TextBox x:Name="SessionNameBox" Height="42" VerticalContentAlignment="Center" ToolTip="E.g. Checkout validation"/>
+
+                            <Expander x:Name="OrganizationExpander" Header="Organization (optional)" Margin="0,10,0,0">
+                                <StackPanel Margin="0,8,0,2">
+                                    <TextBlock x:Name="SessionFolderLabel" Text="Folder / project" FontSize="10.5" Foreground="#91A7BF"/>
+                                    <TextBox x:Name="SessionFolderBox" Height="36" Margin="0,4,0,7" VerticalContentAlignment="Center" ToolTip="E.g. Sprint 24 / Checkout"/>
+                                    <TextBlock x:Name="SessionTagsLabel" Text="Tags" FontSize="10.5" Foreground="#91A7BF"/>
+                                    <TextBox x:Name="SessionTagsBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Comma-separated tags, e.g. regression, checkout, staging"/>
+                                </StackPanel>
+                            </Expander>
 
                             <TextBlock x:Name="TestTypeLabel" Text="Test type" FontWeight="SemiBold" FontSize="12" Margin="0,14,0,6"/>
                             <ComboBox x:Name="TemplateBox" Height="40">
@@ -132,10 +142,25 @@
                             <TextBlock x:Name="HistoryTitleText" Text="History" FontSize="22" FontWeight="SemiBold"/>
                             <TextBlock x:Name="HistorySubtitleText" Text="Review saved sessions and multipart recordings." Foreground="#8FA3B8" FontSize="11" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <TextBox x:Name="HistorySearch" Grid.Row="1" Margin="0,13,0,10" Height="38" VerticalContentAlignment="Center" TextChanged="HistorySearch_TextChanged" ToolTip="Search by session name or date"/>
+                        <Grid Grid.Row="1" Margin="0,13,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="HistorySearch" Height="38" VerticalContentAlignment="Center" TextChanged="HistorySearch_TextChanged" ToolTip="Search by session, folder, tag or date"/>
+                            <Button Grid.Column="2" x:Name="TimelineHistoryButton" Content="Timeline" Padding="10,7" Click="TimelineHistory_Click" ToolTip="Open evidence timeline"/>
+                            <Button Grid.Column="4" x:Name="DeleteHistoryButton" Content="Delete" Padding="10,7" Click="DeleteHistorySelected_Click" ToolTip="Delete selected session"/>
+                            <Button Grid.Column="6" x:Name="ClearHistoryButton" Style="{StaticResource DangerButton}" Content="Clear" Padding="10,7" Click="ClearHistory_Click" ToolTip="Delete all saved session history"/>
+                        </Grid>
                         <DataGrid Grid.Row="2" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" MouseDoubleClick="HistoryGrid_MouseDoubleClick" FontSize="10.5">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Session" Binding="{Binding DisplayName}" Width="*"/>
+                                <DataGridTextColumn Header="Folder" Binding="{Binding FolderDisplay}" Width="100"/>
                                 <DataGridTextColumn Header="Started" Binding="{Binding StartedDisplay}" Width="116"/>
                                 <DataGridTextColumn Header="Duration" Binding="{Binding DurationText}" Width="78"/>
                             </DataGrid.Columns>
@@ -189,6 +214,8 @@
                             <ComboBox x:Name="LanguageBox" SelectionChanged="LanguageBox_SelectionChanged"><ComboBoxItem Content="English"/><ComboBoxItem Content="Español"/></ComboBox>
                             <TextBlock x:Name="PrivacyMaskLabel" Text="Sensitive data masking" Margin="0,10,0,4"/>
                             <ComboBox x:Name="PrivacyMaskBox"><ComboBoxItem Content="Automatic" IsSelected="True"/><ComboBoxItem Content="Manual"/><ComboBoxItem Content="Off"/></ComboBox>
+                            <Button x:Name="ManagePrivacyZonesButton" Content="Manage privacy zones" Margin="0,8,0,0" Click="ManagePrivacyZones_Click" ToolTip="Define areas that should always be hidden in screenshots"/>
+                            <TextBlock x:Name="PrivacyZonesHelpText" Text="Privacy zones are applied locally before evidence is saved." Foreground="#71869E" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <TextBlock x:Name="CoverageTargetsLabel" Text="Coverage targets (optional)" Margin="0,10,0,4"/>
                             <TextBox x:Name="CoverageTargetsBox" Height="64" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" ToolTip="Optional comma-separated applications, modules or windows expected in the test."/>
                             <TextBlock x:Name="CoverageHelpText" Text="If left empty, QAFlow reports the observed coverage footprint without claiming full application coverage." Foreground="#71869E" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
@@ -205,8 +232,9 @@
 
         <Border Grid.Row="2" Background="#0D131D" BorderBrush="#26364A" BorderThickness="0,1,0,0">
             <Grid Margin="10,0">
-                <TextBlock x:Name="StatusBar" Text="Ready" Foreground="#7F93AA" FontSize="10" VerticalAlignment="Center"/>
-                <TextBlock x:Name="FooterBrandText" Text="Local-first · QAFlow Recorder 1.0" Foreground="#63778E" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatusBar" Grid.Column="0" Text="Ready" Foreground="#7F93AA" FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                <TextBlock x:Name="FooterBrandText" Grid.Column="1" Text="Local-first · QAFlow Recorder 1.0" Foreground="#63778E" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

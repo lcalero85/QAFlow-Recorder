@@ -39,6 +39,7 @@ public partial class SessionReviewWindow : Window
         ReviewGrid.ItemsSource = _rows;
         ApplyLanguage();
         UpdateSummary();
+        if (_rows.Count > 0) ReviewGrid.SelectedIndex = 0;
     }
 
     private void ApplyLanguage()
@@ -46,25 +47,60 @@ public partial class SessionReviewWindow : Window
         if (!_es) return;
         Title = "Revisar sesión — QAFlow";
         TitleText.Text = "Revisar sesión";
-        SubtitleText.Text = "Depura el flujo capturado antes de generar la documentación QA final.";
-        CapturedLabel.Text = "PASOS CAPTURADOS";
-        CheckpointLabel.Text = "HITOS INTELIGENTES";
-        IncludedLabel.Text = "INCLUIDOS EN REPORTE";
-        RiskLabel.Text = "ÁREAS DE ALTO RIESGO";
+        SubtitleText.Text = "Revisa los pasos capturados antes de generar la documentación QA final.";
+        CapturedLabel.Text = "CAPTURADOS";
+        IncludedLabel.Text = "EN REPORTE";
+        CheckpointLabel.Text = "HITOS";
         QualityLabel.Text = "LISTO PARA REPORTE";
         IncludeColumn.Header = "Incluir";
         TimeColumn.Header = "Hora";
         TargetColumn.Header = "Aplicación / ventana";
-        DescriptionColumn.Header = "Descripción profesional del paso";
-        ImportantColumn.Header = "Clave";
-        MaskColumn.Header = "Ocultar";
-        CheckpointColumn.Header = "Etapa";
-        StageColumn.Header = "Título de etapa";
-        HintText.Text = "Consejo: elimina ruido, renombra pasos poco claros y conserva los hitos importantes. La evidencia original nunca se elimina.";
+        DescriptionColumn.Header = "Descripción del paso";
+        AdvancedExpander.Header = "Opciones avanzadas del paso seleccionado";
+        ImportantCheck.Content = "Paso importante";
+        MaskCheck.Content = "Ocultar evidencia";
+        CheckpointCheck.Content = "Hito";
+        StageTitleLabel.Text = "Título del hito";
+        HintText.Text = "Conserva solo los pasos útiles y mejora descripciones poco claras. La evidencia original nunca se elimina.";
+        MoreActionsExpander.Header = "Más acciones de revisión";
         SaveBaselineButton.Content = "Actualizar baseline visual";
         SaveFlowButton.Content = "Guardar flujo reutilizable";
         CancelButton.Content = "Volver";
         ContinueButton.Content = "Continuar a exportación";
+    }
+
+    private bool _syncingAdvanced;
+
+    private ReviewRow? SelectedRow => ReviewGrid.SelectedItem as ReviewRow;
+
+    private void ReviewGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        _syncingAdvanced = true;
+        var row = SelectedRow;
+        ImportantCheck.IsEnabled = row is not null;
+        MaskCheck.IsEnabled = row is not null;
+        CheckpointCheck.IsEnabled = row is not null;
+        StageTitleBox.IsEnabled = row is not null;
+        ImportantCheck.IsChecked = row?.Important ?? false;
+        MaskCheck.IsChecked = row?.MaskSensitive ?? false;
+        CheckpointCheck.IsChecked = row?.Checkpoint ?? false;
+        StageTitleBox.Text = row?.CheckpointTitle ?? string.Empty;
+        _syncingAdvanced = false;
+    }
+
+    private void AdvancedOption_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_syncingAdvanced || SelectedRow is not { } row) return;
+        row.Important = ImportantCheck.IsChecked == true;
+        row.MaskSensitive = MaskCheck.IsChecked == true;
+        row.Checkpoint = CheckpointCheck.IsChecked == true;
+        UpdateSummary();
+    }
+
+    private void StageTitleBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_syncingAdvanced || SelectedRow is not { } row) return;
+        row.CheckpointTitle = StageTitleBox.Text;
     }
 
     private void ReviewGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
@@ -77,7 +113,6 @@ public partial class SessionReviewWindow : Window
         CapturedValue.Text = _rows.Count.ToString();
         CheckpointValue.Text = _rows.Count(r => r.Checkpoint).ToString();
         IncludedValue.Text = _rows.Count(r => r.Include).ToString();
-        RiskValue.Text = _risk.HighRiskCount.ToString();
         _quality = EvidenceQualityService.Analyze(_session);
         QualityValue.Text = $"{_quality.ReadinessPercent}%";
         QualityValue.ToolTip = string.Join("\n", _quality.Issues.Take(6).Select(x => _es ? x.MessageSpanish : x.MessageEnglish));
