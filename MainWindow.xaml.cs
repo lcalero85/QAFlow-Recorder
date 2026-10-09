@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private AppSettings _settings = new();
     private List<TestSession> _history = [];
     private List<ReusableFlow> _reusableFlows = [];
+    private List<SessionTemplateDefinition> _sessionTemplates = [];
     private FloatingRecorderBar? _floatingBar;
     private bool _isFinishing;
     private bool _isSplitting;
@@ -35,6 +36,8 @@ public partial class MainWindow : Window
     private const int HotkeyHistory = 104;
     private const int HotkeyRestore = 105;
     private const int HotkeyBug = 106;
+    private const int HotkeyBookmark = 107;
+    private const int HotkeyChecklist = 108;
     private const uint ModControl = 0x0002;
     private const uint ModShift = 0x0004;
     private const uint WmHotkey = 0x0312;
@@ -42,6 +45,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // Position the panel before WPF shows the native window. Doing this in
+        // Loaded caused a visible jump from the default launch position to the
+        // right edge of the work area.
+        DockToRight();
         Loaded += MainWindow_Loaded;
         _timer.Tick += SessionTimer_Tick;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
@@ -59,9 +66,9 @@ public partial class MainWindow : Window
         LoadSettingsToUi();
         await ReloadHistoryAsync();
         await ReloadReferenceFlowsAsync();
+        await ReloadSessionTemplatesAsync();
         ApplyLanguage();
         StateText.Text = Localizer.T("NoSession", _settings.UiLanguage);
-        DockToRight();
     }
 
     private void DockToRight()
@@ -229,6 +236,10 @@ public partial class MainWindow : Window
         var baseName = string.IsNullOrWhiteSpace(SessionNameBox.Text)
             ? $"{(_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Sesión QA" : "QA Session")} {DateTime.Now:yyyy-MM-dd HH:mm}"
             : SessionNameBox.Text.Trim();
+        var initialHwnd = DesktopCaptureService.GetForegroundWindowHandle();
+        var initialIsQaFlow = DesktopCaptureService.IsHandleOwnedByCurrentProcess(initialHwnd);
+        var initialWindow = initialIsQaFlow ? "" : DesktopCaptureService.GetWindowTitle(initialHwnd);
+        var initialApp = initialIsQaFlow ? "" : DesktopCaptureService.GetWindowProcessName(initialHwnd);
 
         var session = new TestSession
         {
@@ -240,6 +251,20 @@ public partial class MainWindow : Window
             Template = TemplateBox.SelectedIndex switch { 1 => "Regression", 2 => "UAT", 3 => "Smoke", 4 => "Exploratory", _ => "Functional Normal" },
             StartedAt = DateTimeOffset.Now,
             Resolution = $"{SystemParameters.PrimaryScreenWidth:0}x{SystemParameters.PrimaryScreenHeight:0}",
+            BuildVersion = BuildVersionBox.Text.Trim(),
+            EnvironmentSnapshot = new EnvironmentSnapshot
+            {
+                CapturedAt = DateTimeOffset.Now,
+                OperatingSystem = Environment.OSVersion.VersionString,
+                Resolution = $"{SystemParameters.PrimaryScreenWidth:0}x{SystemParameters.PrimaryScreenHeight:0}",
+                TimeZone = TimeZoneInfo.Local.DisplayName,
+                MachineName = Environment.MachineName,
+                ActiveApplication = initialApp,
+                ActiveWindow = initialWindow,
+                BuildVersion = BuildVersionBox.Text.Trim()
+            },
+            ManualChecklist = ChecklistDefinitionBox.Text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select((text, index) => new ManualChecklistItem { Order = index + 1, Text = text }).ToList(),
             State = SessionState.Recording,
             PartNumber = 1,
             CharterObjective = CharterObjectiveBox.Text.Trim(),
@@ -262,10 +287,12 @@ public partial class MainWindow : Window
         StartButton.IsEnabled = false;
         PauseButton.IsEnabled = true;
         FinishButton.IsEnabled = true;
+        SessionTemplateBox.IsEnabled = false; ManageSessionTemplatesButton.IsEnabled = false;
         SessionNameBox.IsEnabled = false;
         OrganizationExpander.IsEnabled = false;
         TemplateBox.IsEnabled = false;
         CharterExpander.IsEnabled = false;
+        ChecklistExpander.IsEnabled = false;
         ReferenceFlowBox.IsEnabled = false; ManageFlowsButton.IsEnabled = false;
         StateDot.Fill = new SolidColorBrush(Color.FromRgb(255, 101, 119));
         StateText.Text = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "GRABANDO" : "RECORDING";
@@ -326,6 +353,9 @@ public partial class MainWindow : Window
                 Template = current.Template,
                 StartedAt = DateTimeOffset.Now,
                 Resolution = current.Resolution,
+                BuildVersion = current.BuildVersion,
+                EnvironmentSnapshot = current.EnvironmentSnapshot,
+                ManualChecklist = current.ManualChecklist.Select(x => new ManualChecklistItem { Id=x.Id, Order=x.Order, Text=x.Text, Status=x.Status, Note=x.Note }).ToList(),
                 State = SessionState.Recording,
                 SeriesId = current.SeriesId,
                 PreviousPartId = current.Id,
@@ -409,10 +439,12 @@ public partial class MainWindow : Window
 
             StartButton.IsEnabled = true;
             PauseButton.IsEnabled = false;
+            SessionTemplateBox.IsEnabled = true; ManageSessionTemplatesButton.IsEnabled = true;
             SessionNameBox.IsEnabled = true;
             OrganizationExpander.IsEnabled = true;
             TemplateBox.IsEnabled = true;
             CharterExpander.IsEnabled = true;
+            ChecklistExpander.IsEnabled = true;
             ReferenceFlowBox.IsEnabled = true; ManageFlowsButton.IsEnabled = true;
             StateDot.Fill = new SolidColorBrush(Color.FromRgb(61, 220, 151));
             StateText.Text = Localizer.T("Finished", _settings.UiLanguage);
@@ -730,6 +762,118 @@ public partial class MainWindow : Window
         StateText.Text = Localizer.T("Historical", _settings.UiLanguage);
     }
 
+    private async Task ReloadSessionTemplatesAsync()
+    {
+        _sessionTemplates = await new SessionTemplateService().LoadAsync();
+        var display = new List<SessionTemplateDefinition> { new() { Id = Guid.Empty, Name = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Sin plantilla" : "No template", BuiltIn = false } };
+        display.AddRange(_sessionTemplates);
+        SessionTemplateBox.ItemsSource = null;
+        SessionTemplateBox.ItemsSource = display;
+        SessionTemplateBox.SelectedIndex = 0;
+    }
+
+    private void ApplySessionTemplate(SessionTemplateDefinition template)
+    {
+        TemplateBox.SelectedIndex = template.TestType switch { "Regression" => 1, "UAT" => 2, "Smoke" => 3, "Exploratory" => 4, _ => 0 };
+        if (!string.IsNullOrWhiteSpace(template.DefaultTags)) SessionTagsBox.Text = template.DefaultTags;
+        CharterObjectiveBox.Text = template.CharterObjective;
+        CharterRisksBox.Text = template.CharterRisks;
+        ChecklistDefinitionBox.Text = template.ChecklistText;
+        PeriodicShotCheck.IsChecked = template.PeriodicCapture;
+        PeriodicSecondsBox.Text = template.PeriodicSeconds.ToString();
+        PrivacyMaskBox.SelectedIndex = template.PrivacyMasking switch { PrivacyMaskMode.Manual => 1, PrivacyMaskMode.Off => 2, _ => 0 };
+        _settings.PeriodicScreenshot = template.PeriodicCapture;
+        _settings.PeriodicSeconds = template.PeriodicSeconds;
+        _settings.PrivacyMasking = template.PrivacyMasking;
+    }
+
+    private void SessionTemplateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded || SessionTemplateBox.SelectedItem is not SessionTemplateDefinition template || template.Id == Guid.Empty) return;
+        ApplySessionTemplate(template);
+    }
+
+    private async void ManageSessionTemplates_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SessionTemplateWindow(_settings.UiLanguage) { Owner = this };
+        dlg.ShowDialog();
+        await ReloadSessionTemplatesAsync();
+    }
+
+    private async Task AddBookmarkAsync()
+    {
+        if (_session is null || _session.State != SessionState.Recording) return;
+        var dlg = new BookmarkWindow(_settings.UiLanguage);
+        if (IsVisible) dlg.Owner = this;
+        if (dlg.ShowDialog() != true) return;
+        var bookmark = new SessionBookmark
+        {
+            Timestamp = DateTimeOffset.Now,
+            Category = dlg.Category,
+            Note = dlg.Note,
+            ApplicationName = _desktopRecorder.LastApplicationName,
+            WindowTitle = _desktopRecorder.LastTargetTitle
+        };
+        try
+        {
+            bookmark.ScreenshotPath = await CaptureDesktopEvidenceAsync(ScreenshotKind.Manual, bookmark.WindowTitle) ?? "";
+            var shot = _session.Screenshots.LastOrDefault(x => string.Equals(x.FilePath, bookmark.ScreenshotPath, StringComparison.OrdinalIgnoreCase));
+            if (shot is not null) shot.TargetTitle = $"★ {bookmark.DisplayText}" + (string.IsNullOrWhiteSpace(bookmark.WindowTitle) ? "" : $" — {bookmark.WindowTitle}");
+        }
+        catch { }
+        _session.Bookmarks.Add(bookmark);
+        var ev = new QaEvent
+        {
+            Timestamp = bookmark.Timestamp,
+            Kind = EventKind.Note,
+            ApplicationName = bookmark.ApplicationName,
+            WindowTitle = bookmark.WindowTitle,
+            TargetTitle = bookmark.WindowTitle,
+            Description = bookmark.DisplayText,
+            IsImportant = true,
+            IsCheckpoint = true,
+            CheckpointKind = "Bookmark",
+            CheckpointTitle = bookmark.DisplayText
+        };
+        _session.Events.Add(ev);
+        await _store.SaveAsync(_session);
+        StatusBar.Text = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Marcador agregado a la sesión." : "Bookmark added to the session.";
+    }
+
+    private void OpenChecklist()
+    {
+        if (_session is null || _session.State is not (SessionState.Recording or SessionState.Paused)) return;
+        if (_session.ManualChecklist.Count == 0)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Esta sesión no tiene checklist manual." : "This session has no manual checklist.", _settings.UiLanguage);
+            return;
+        }
+        var dlg = new ManualChecklistWindow(_session.ManualChecklist, _settings.UiLanguage);
+        if (IsVisible) dlg.Owner = this;
+        dlg.ShowDialog();
+        _ = _store.SaveAsync(_session);
+    }
+
+    private void CompareHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (HistoryGrid.SelectedItem is not TestSession selected)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Selecciona una sesión para comparar." : "Select a session to compare.", _settings.UiLanguage);
+            return;
+        }
+        var baseName = string.IsNullOrWhiteSpace(selected.BaseName) ? selected.Name : selected.BaseName;
+        var previous = _history.Where(x => x.Id != selected.Id && x.StartedAt < selected.StartedAt)
+            .OrderByDescending(x => string.Equals(string.IsNullOrWhiteSpace(x.BaseName) ? x.Name : x.BaseName, baseName, StringComparison.OrdinalIgnoreCase))
+            .ThenByDescending(x => x.StartedAt)
+            .FirstOrDefault();
+        if (previous is null)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "No hay una sesión anterior disponible para comparar." : "No previous session is available for comparison.", _settings.UiLanguage);
+            return;
+        }
+        new SessionComparisonWindow(SessionComparisonService.Compare(selected, previous), _settings.UiLanguage) { Owner = this }.ShowDialog();
+    }
+
     private async Task ReloadReferenceFlowsAsync()
     {
         _reusableFlows = await new ReusableFlowLibraryService().LoadAsync();
@@ -761,7 +905,9 @@ public partial class MainWindow : Window
         QualitySlider.Value = _settings.ImageQuality;
         LanguageBox.SelectedIndex = _settings.DocumentLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         UiLanguageBox.SelectedIndex = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        ThemeBox.SelectedIndex = string.Equals(_settings.UiTheme, ThemeManager.Aero, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         FileTemplateBox.Text = _settings.FileNameTemplate;
+        CompanyLogoPathBox.Text = _settings.CompanyLogoPath;
         ExportFolderBox.Text = _settings.ExportFolder;
         PrivacyMaskBox.SelectedIndex = _settings.PrivacyMasking switch { PrivacyMaskMode.Manual => 1, PrivacyMaskMode.Off => 2, _ => 0 };
         PrivacyZonesHelpText.Text = (_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Zonas de privacidad configuradas: " : "Configured privacy zones: ") + _settings.PrivacyZones.Count;
@@ -771,7 +917,7 @@ public partial class MainWindow : Window
         ProductModeBox.SelectedIndex = _settings.ProductMode == ProductMode.HybridTesting ? 1 : 0;
         AutomationBaseUrlBox.Text = _settings.WebAutomationBaseUrl;
         AutomationAllowedDomainsBox.Text = _settings.WebAutomationAllowedDomains;
-        AutomationBrowserBox.SelectedIndex = string.Equals(_settings.WebAutomationDefaultBrowser, "Edge", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        AutomationBrowserBox.SelectedIndex = string.Equals(_settings.WebAutomationDefaultBrowser, "Firefox", StringComparison.OrdinalIgnoreCase) ? 2 : string.Equals(_settings.WebAutomationDefaultBrowser, "Edge", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         CaptureOutOfScopeCheck.IsChecked = _settings.CaptureOutOfScopeAsEvidence;
         RefreshProductModeUi();
         RefreshCapabilityNavigation();
@@ -789,6 +935,31 @@ public partial class MainWindow : Window
         PrivacyZonesHelpText.Text = (_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Zonas de privacidad configuradas: " : "Configured privacy zones: ") + _settings.PrivacyZones.Count;
     }
 
+    private void BrowseCompanyLogo_Click(object sender, RoutedEventArgs e)
+    {
+        var es = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = es ? "Seleccionar logo para informes PDF" : "Select logo for PDF reports",
+            Filter = "Logo files|*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.svg|PNG|*.png|JPEG|*.jpg;*.jpeg|SVG|*.svg|All files|*.*",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (dlg.ShowDialog(this) == true)
+        {
+            CompanyLogoPathBox.Text = dlg.FileName;
+            StatusBar.Text = es ? "Logo personalizado seleccionado. Guarda la configuración para aplicarlo a los PDFs." : "Custom logo selected. Save settings to apply it to PDF reports.";
+        }
+    }
+
+    private void ClearCompanyLogo_Click(object sender, RoutedEventArgs e)
+    {
+        CompanyLogoPathBox.Text = "";
+        StatusBar.Text = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase)
+            ? "Se usará el logo de QAFlow en los informes PDF después de guardar."
+            : "QAFlow branding will be used in PDF reports after saving.";
+    }
+
     private async void SaveSettings_Click(object sender, RoutedEventArgs e)
     {
         _settings.QaName = QaNameBox.Text.Trim();
@@ -799,16 +970,18 @@ public partial class MainWindow : Window
         _settings.IncludeTechnicalAppendix = AppendixCheck.IsChecked == true;
         _settings.ImageQuality = (int)QualitySlider.Value;
         _settings.DocumentLanguage = LanguageBox.SelectedIndex == 1 ? "Español" : "English";
+        _settings.UiTheme = ThemeBox.SelectedIndex == 1 ? ThemeManager.Aero : ThemeManager.Dark;
         _settings.PrivacyMasking = PrivacyMaskBox.SelectedIndex switch { 1 => PrivacyMaskMode.Manual, 2 => PrivacyMaskMode.Off, _ => PrivacyMaskMode.Automatic };
         _settings.ExpectedCoverageTargets = CoverageTargetsBox.Text.Trim();
         _settings.IncludeVisualComparison = VisualComparisonCheck.IsChecked == true;
         _settings.IncludeEvidenceQuality = EvidenceQualityCheck.IsChecked == true;
         _settings.FileNameTemplate = string.IsNullOrWhiteSpace(FileTemplateBox.Text) ? "qa-report-{sesion}-{fecha}.pdf" : FileTemplateBox.Text.Trim();
+        _settings.CompanyLogoPath = File.Exists(CompanyLogoPathBox.Text) ? CompanyLogoPathBox.Text.Trim() : "";
         _settings.ExportFolder = string.IsNullOrWhiteSpace(ExportFolderBox.Text) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "QAFlow Recorder") : ExportFolderBox.Text.Trim();
         _settings.ProductMode = ProductModeBox.SelectedIndex == 1 ? ProductMode.HybridTesting : ProductMode.RecorderOnly;
         _settings.WebAutomationBaseUrl = AutomationBaseUrlBox.Text.Trim();
         _settings.WebAutomationAllowedDomains = AutomationAllowedDomainsBox.Text.Trim();
-        _settings.WebAutomationDefaultBrowser = AutomationBrowserBox.SelectedIndex == 1 ? "Edge" : "Chrome";
+        _settings.WebAutomationDefaultBrowser = AutomationBrowserBox.SelectedIndex == 2 ? "Firefox" : AutomationBrowserBox.SelectedIndex == 1 ? "Edge" : "Chrome";
         _settings.CaptureOutOfScopeAsEvidence = CaptureOutOfScopeCheck.IsChecked == true;
 
         var capabilities = new CapabilityManager(_settings);
@@ -821,6 +994,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        ThemeManager.ApplyTheme(_settings.UiTheme);
         await _store.SaveSettingsAsync(_settings);
         _webBridge?.UpdateSettings(_settings);
         RefreshCapabilityNavigation();
@@ -874,10 +1048,15 @@ public partial class MainWindow : Window
         NavSettings.Content = Localizer.T("Settings", l);
         RecorderTitleText.Text = es ? "Captura tu flujo QA" : "Capture your QA flow";
         RecorderSubtitleText.Text = es ? "Trabaja con normalidad. QAFlow registra interacciones y evidencia visual del escritorio y crea un reporte QA claro." : "Work naturally. QAFlow records desktop interactions and visual evidence, then builds a clear QA report.";
+        AdvancedSessionExpander.Header = es ? "Opciones avanzadas de sesión" : "Advanced session options";
+        SessionTemplateLabel.Text = es ? "Plantilla de sesión (opcional)" : "Session template (optional)";
+        ManageSessionTemplatesButton.Content = es ? "Administrar" : "Manage";
         SessionNameLabel.Text = Localizer.T("SessionName", l);
         OrganizationExpander.Header = es ? "Organización (opcional)" : "Organization (optional)";
         SessionFolderLabel.Text = es ? "Carpeta / proyecto" : "Folder / project";
         SessionTagsLabel.Text = es ? "Etiquetas" : "Tags";
+        BuildVersionLabel.Text = es ? "Build / versión" : "Build / version";
+        BuildVersionBox.ToolTip = es ? "Build o versión del software bajo prueba (opcional)" : "Optional software build or release under test";
         SessionFolderBox.ToolTip = es ? "Ej. Sprint 24 / Checkout" : "E.g. Sprint 24 / Checkout";
         SessionTagsBox.ToolTip = es ? "Etiquetas separadas por coma, ej. regresión, checkout, staging" : "Comma-separated tags, e.g. regression, checkout, staging";
         TestTypeLabel.Text = Localizer.T("TestType", l);
@@ -888,6 +1067,8 @@ public partial class MainWindow : Window
         CharterDataLabel.Text = es ? "Datos de prueba" : "Test data";
         CharterConstraintsLabel.Text = es ? "Restricciones / notas" : "Constraints / notes";
         CharterMinutesLabel.Text = es ? "Duración prevista (minutos)" : "Planned duration (minutes)";
+        ChecklistExpander.Header = es ? "Checklist manual (opcional)" : "Manual checklist (optional)";
+        ChecklistHelpText.Text = es ? "Una validación por línea. Actualiza resultados durante la sesión desde la barra de grabación." : "One validation per line. Update results during the session from the recording bar.";
         ReferenceFlowLabel.Text = es ? "Flujo de referencia (opcional)" : "Reference flow (optional)";
         ManageFlowsButton.Content = es ? "Biblioteca" : "Library";
         ShowFloatingBarCheck.Content = es ? "Mostrar barra de control durante la grabación" : "Show recording control bar";
@@ -900,7 +1081,7 @@ public partial class MainWindow : Window
         ActionsMetricLabel.Text = es ? "INTERACCIONES" : "INTERACTIONS";
         PagesMetricLabel.Text = es ? "OBJETIVOS" : "TARGETS";
         NotesMetricLabel.Text = es ? "HALLAZGOS" : "FINDINGS";
-        HotkeysText.Text = es ? "Ctrl+Shift+R finalizar · Ctrl+Shift+A anotar · Ctrl+Shift+P pausar · Ctrl+Shift+B bug" : "Ctrl+Shift+R finish · Ctrl+Shift+A annotate · Ctrl+Shift+P pause · Ctrl+Shift+B bug";
+        HotkeysText.Text = es ? "Ctrl+Shift+R finalizar · Ctrl+Shift+M marcar · Ctrl+Shift+K checklist · Ctrl+Shift+B bug" : "Ctrl+Shift+R finish · Ctrl+Shift+M mark · Ctrl+Shift+K checklist · Ctrl+Shift+B bug";
         SessionNameBox.ToolTip = es ? "Ej. Validación de checkout" : "E.g. Checkout validation";
 
         HistoryTitleText.Text = Localizer.T("History", l);
@@ -910,6 +1091,8 @@ public partial class MainWindow : Window
         TimelineHistoryButton.ToolTip = es ? "Abrir línea de tiempo de evidencia" : "Open evidence timeline";
         DeleteHistoryButton.Content = es ? "Eliminar" : "Delete";
         DeleteHistoryButton.ToolTip = es ? "Eliminar la sesión seleccionada" : "Delete selected session";
+        CompareHistoryButton.Content = es ? "Comparar" : "Compare";
+        CompareHistoryButton.ToolTip = es ? "Comparar con la ejecución anterior" : "Compare with the previous run";
         ClearHistoryButton.Content = es ? "Limpiar" : "Clear";
         ClearHistoryButton.ToolTip = es ? "Eliminar todo el historial guardado" : "Delete all saved session history";
         if (HistoryGrid.Columns.Count >= 4)
@@ -936,7 +1119,7 @@ public partial class MainWindow : Window
         PeriodicShotCheck.Content = es ? "Captura periódica de evidencia" : "Periodic evidence capture";
         IntervalLabel.Text = Localizer.T("Interval", l);
         AppendixCheck.Content = Localizer.T("Appendix", l);
-        QualityLabel.Text = Localizer.T("Quality", l);
+        QualityLabel.Text = l.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "Calidad de evidencia PDF" : "PDF evidence quality";
         DocLanguageLabel.Text = Localizer.T("DocLanguage", l);
         PrivacyMaskLabel.Text = es ? "Enmascarado de datos sensibles" : "Sensitive data masking";
         ManagePrivacyZonesButton.Content = es ? "Administrar zonas de privacidad" : "Manage privacy zones";
@@ -952,6 +1135,16 @@ public partial class MainWindow : Window
             ((ComboBoxItem)PrivacyMaskBox.Items[1]).Content = es ? "Manual" : "Manual";
             ((ComboBoxItem)PrivacyMaskBox.Items[2]).Content = es ? "Desactivado" : "Off";
         }
+        PdfBrandingLabel.Text = es ? "Identidad de informes PDF" : "PDF report branding";
+        AppearanceTitleText.Text = es ? "Apariencia" : "Appearance";
+        AppearanceHelpText.Text = es
+            ? "Elige el estilo de la interfaz. Aero ofrece un espacio de trabajo más luminoso con acabado tipo vidrio, conservando los mismos controles y flujo."
+            : "Choose the interface style. Aero adds a brighter glass-inspired workspace while preserving the same controls and workflow.";
+        BrowseCompanyLogoButton.Content = es ? "Elegir logo de empresa" : "Choose company logo";
+        ClearCompanyLogoButton.Content = es ? "Usar logo de QAFlow" : "Use QAFlow logo";
+        CompanyLogoHelpText.Text = es
+            ? "PNG, JPG, WEBP, BMP o SVG. Un logo empresarial configurado reemplaza la identidad de QAFlow en los PDFs exportados."
+            : "PNG, JPG, WEBP, BMP or SVG. A configured company logo replaces QAFlow branding in exported PDFs.";
         ExportFolderLabel.Text = Localizer.T("ExportFolder", l);
         FileTemplateLabel.Text = es ? "Plantilla de nombre de archivo" : "File name template";
         SaveSettingsButton.Content = Localizer.T("SaveSettings", l);
@@ -1022,6 +1215,8 @@ public partial class MainWindow : Window
         _floatingBar.PauseRequested += () => Dispatcher.Invoke(() => Pause_Click(this, new RoutedEventArgs()));
         _floatingBar.AnnotateRequested += () => Dispatcher.Invoke(async () => await AnnotateAsync());
         _floatingBar.CaptureRequested += () => Dispatcher.Invoke(async () => await CaptureManualAsync());
+        _floatingBar.BookmarkRequested += () => Dispatcher.Invoke(async () => await AddBookmarkAsync());
+        _floatingBar.ChecklistRequested += () => Dispatcher.Invoke(OpenChecklist);
         _floatingBar.BugRequested += () => Dispatcher.Invoke(async () => await ReportBugAsync());
         _floatingBar.RestoreRequested += () => Dispatcher.Invoke(RestoreMainWindow);
         _floatingBar.FinishRequested += () => FinishSessionAsync(true);
@@ -1052,6 +1247,8 @@ public partial class MainWindow : Window
         else if (e.Key == Key.A) { await AnnotateAsync(); e.Handled = true; }
         else if (e.Key == Key.P) { Pause_Click(this, new RoutedEventArgs()); e.Handled = true; }
         else if (e.Key == Key.B) { await ReportBugAsync(); e.Handled = true; }
+        else if (e.Key == Key.M) { await AddBookmarkAsync(); e.Handled = true; }
+        else if (e.Key == Key.K) { OpenChecklist(); e.Handled = true; }
         else if (e.Key == Key.O) { RestoreMainWindow(); e.Handled = true; }
     }
 
@@ -1076,6 +1273,8 @@ public partial class MainWindow : Window
         RegisterHotKey(hwnd, HotkeyHistory, ModControl | ModShift, (uint)KeyInterop.VirtualKeyFromKey(Key.L));
         RegisterHotKey(hwnd, HotkeyRestore, ModControl | ModShift, (uint)KeyInterop.VirtualKeyFromKey(Key.O));
         RegisterHotKey(hwnd, HotkeyBug, ModControl | ModShift, (uint)KeyInterop.VirtualKeyFromKey(Key.B));
+        RegisterHotKey(hwnd, HotkeyBookmark, ModControl | ModShift, (uint)KeyInterop.VirtualKeyFromKey(Key.M));
+        RegisterHotKey(hwnd, HotkeyChecklist, ModControl | ModShift, (uint)KeyInterop.VirtualKeyFromKey(Key.K));
     }
 
     private async void HandleHotkey(int id)
@@ -1088,6 +1287,8 @@ public partial class MainWindow : Window
             case HotkeyHistory: RestoreMainWindow(); ShowView("History"); break;
             case HotkeyRestore: RestoreMainWindow(); break;
             case HotkeyBug: await ReportBugAsync(); break;
+            case HotkeyBookmark: await AddBookmarkAsync(); break;
+            case HotkeyChecklist: OpenChecklist(); break;
         }
     }
 
@@ -1108,7 +1309,7 @@ public partial class MainWindow : Window
             _webBridge = null;
         }
         var hwnd = new WindowInteropHelper(this).Handle;
-        foreach (var id in new[] { HotkeyToggle, HotkeyAnnotate, HotkeyPause, HotkeyHistory, HotkeyRestore, HotkeyBug }) UnregisterHotKey(hwnd, id);
+        foreach (var id in new[] { HotkeyToggle, HotkeyAnnotate, HotkeyPause, HotkeyHistory, HotkeyRestore, HotkeyBug, HotkeyBookmark, HotkeyChecklist }) UnregisterHotKey(hwnd, id);
         _hwndSource?.RemoveHook(WndProc);
     }
 

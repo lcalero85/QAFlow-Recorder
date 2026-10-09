@@ -1,32 +1,34 @@
 <Window x:Class="QAFlowRecorder.Views.FloatingRecorderBar"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="QAFlow Recorder Bar" Width="830" Height="60"
+        Title="QAFlow Recorder Bar" Width="1020" Height="60"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         Topmost="True" Background="Transparent" AllowsTransparency="True"
         WindowStartupLocation="Manual" Icon="pack://application:,,,/Assets/qaflow.ico">
-    <Border Background="#F20D131D" BorderBrush="#34465E" BorderThickness="1" CornerRadius="11" Padding="8"
+    <Border Background="{DynamicResource RecordingOverlayBrush}" BorderBrush="{DynamicResource BorderExact3Brush}" BorderThickness="1" CornerRadius="11" Padding="8"
             MouseLeftButtonDown="Bar_MouseLeftButtonDown">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Border Width="34" Height="34" CornerRadius="8" Background="#111A27" BorderBrush="#2A3B51" BorderThickness="1" VerticalAlignment="Center">
+            <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" VerticalAlignment="Center">
                 <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="28" Height="28" Stretch="Uniform"/>
             </Border>
             <StackPanel Grid.Column="1" Margin="9,0,14,0" VerticalAlignment="Center">
-                <TextBlock x:Name="StatusText" Text="RECORDING" Foreground="#FF7888" FontSize="10" FontWeight="Bold"/>
-                <TextBlock x:Name="TimeText" Text="00:00:00" Foreground="#F3F7FC" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock x:Name="StatusText" Text="RECORDING" Foreground="{DynamicResource RedBrush}" FontSize="10" FontWeight="Bold"/>
+                <TextBlock x:Name="TimeText" Text="00:00:00" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="SemiBold"/>
             </StackPanel>
-            <TextBlock Grid.Column="2" x:Name="SessionText" Text="QA session" Foreground="#AFC1D5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+            <TextBlock Grid.Column="2" x:Name="SessionText" Text="QA session" Foreground="{DynamicResource Muted2Brush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
             <Button Grid.Column="3" x:Name="PauseButton" Content="⏸ Pause" Click="Pause_Click" Margin="3,0" Padding="10,6" ToolTip="Pause / resume recording"/>
             <Button Grid.Column="4" x:Name="AnnotateButton" Content="✎ Annotate" Click="Annotate_Click" Margin="3,0" Padding="10,6" ToolTip="Add QA annotation"/>
             <Button Grid.Column="5" x:Name="CaptureButton" Content="📷 Capture" Click="Capture_Click" Margin="3,0" Padding="10,6" ToolTip="Capture current browser state"/>
-            <Button Grid.Column="6" x:Name="BugButton" Content="🐞 Bug" Click="Bug_Click" Margin="3,0" Padding="10,6" Background="#4A1D24" BorderBrush="#8C303C" Foreground="#FFD7DC" ToolTip="Pause and document a bug"/>
-            <Button Grid.Column="7" x:Name="RestoreButton" Content="▣ Open" Click="Restore_Click" Margin="3,0" Padding="10,6" ToolTip="Show QAFlow Recorder"/>
-            <Button Grid.Column="8" x:Name="FinishButton" Content="■ Finish" Click="Finish_Click" Margin="3,0" Padding="10,6" Background="#47212A" BorderBrush="#753441" Foreground="#FFDDE2"/>
+            <Button Grid.Column="6" x:Name="BookmarkButton" Content="★ Mark" Click="Bookmark_Click" Margin="3,0" Padding="10,6" ToolTip="Add session bookmark"/>
+            <Button Grid.Column="7" x:Name="ChecklistButton" Content="☑ Checklist" Click="Checklist_Click" Margin="3,0" Padding="10,6" ToolTip="Open manual checklist"/>
+            <Button Grid.Column="8" x:Name="BugButton" Content="🐞 Bug" Click="Bug_Click" Margin="3,0" Padding="10,6" Background="{DynamicResource DangerButtonSurfaceBrush}" BorderBrush="{DynamicResource DangerButtonBorderBrush}" Foreground="{DynamicResource DangerButtonTextBrush}" ToolTip="Pause and document a bug"/>
+            <Button Grid.Column="9" x:Name="RestoreButton" Content="▣ Open" Click="Restore_Click" Margin="3,0" Padding="10,6" ToolTip="Show QAFlow Recorder"/>
+            <Button Grid.Column="10" x:Name="FinishButton" Content="■ Finish" Click="Finish_Click" Margin="3,0" Padding="10,6" Background="{DynamicResource DangerButtonSurfaceBrush}" BorderBrush="{DynamicResource DangerButtonBorderBrush}" Foreground="{DynamicResource DangerButtonTextBrush}"/>
         </Grid>
     </Border>
 </Window>

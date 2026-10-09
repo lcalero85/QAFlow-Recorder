@@ -1,0 +1,19 @@
+<Window x:Class="QAFlowRecorder.Views.ManualChecklistWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Manual checklist" Width="720" Height="560" MinWidth="620" MinHeight="460" WindowStartupLocation="CenterOwner"
+        Icon="pack://application:,,,/Assets/qaflow.ico">
+    <Grid Margin="18">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel><TextBlock x:Name="TitleText" Text="Manual validation checklist" FontSize="21" FontWeight="SemiBold"/><TextBlock x:Name="SubtitleText" Text="Update each validation as the session progresses." Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,14"/></StackPanel>
+        <DataGrid Grid.Row="1" x:Name="ChecklistGrid" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" RowHeight="42">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="#" Binding="{Binding Order}" Width="44" IsReadOnly="True"/>
+                <DataGridTextColumn x:Name="ValidationColumn" Header="Validation" Binding="{Binding Text}" Width="*" IsReadOnly="True"/>
+                <DataGridTemplateColumn x:Name="StatusColumn" Header="Status" Width="125"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="{Binding Status}" Tag="{Binding}" Click="CycleStatus_Click" Padding="8,5"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                <DataGridTextColumn x:Name="NoteColumn" Header="Note" Binding="{Binding Note, UpdateSourceTrigger=LostFocus}" Width="180"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Grid Grid.Row="2" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="HintText" Text="Click the status button to cycle: Not tested → Passed → Failed → Blocked." Foreground="{DynamicResource MutedExact2Brush}" VerticalAlignment="Center" TextWrapping="Wrap"/><Button Grid.Column="1" x:Name="DoneButton" Content="Done" Width="130" Style="{StaticResource PrimaryButton}" Click="Done_Click"/></Grid>
+    </Grid>
+</Window>

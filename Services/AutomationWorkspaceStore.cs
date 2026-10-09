@@ -8,6 +8,7 @@ public sealed class AutomationWorkspaceStore
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private readonly string _root;
     private readonly string _projectsFile;
+    private static readonly SemaphoreSlim SaveGate = new(1, 1);
 
     public AutomationWorkspaceStore()
     {
@@ -30,16 +31,20 @@ public sealed class AutomationWorkspaceStore
             }
             return projects;
         }
-        catch
+        catch (Exception ex)
         {
+            TechnicalLogService.Error(nameof(AutomationWorkspaceStore), "LoadProjects", ex);
             return [];
         }
     }
 
     public async Task SaveProjectsAsync(IEnumerable<AutomationProject> projects)
     {
-        Directory.CreateDirectory(_root);
-        var normalized = projects.ToList();
+        await SaveGate.WaitAsync();
+        try
+        {
+            Directory.CreateDirectory(_root);
+            var normalized = projects.ToList();
         foreach (var project in normalized)
         {
             project.UpdatedAt = DateTimeOffset.Now;
@@ -53,6 +58,7 @@ public sealed class AutomationWorkspaceStore
                 project.Environments.Add(new AutomationEnvironmentProfile { Name = "Default", BaseUrl = project.BaseUrl, AllowedDomains = project.AllowedDomains, Browser = project.DefaultBrowser, IsDefault = true });
             project.EmailDelivery.PdfAttachments ??= [];
             foreach (var dataSet in project.DataSets) dataSet.Variables ??= [];
+            foreach (var tc in project.Suites.SelectMany(x => x.TestCases)) tc.DataSetIds ??= [];
             foreach (var suite in project.Suites)
             {
                 suite.TestCases = suite.TestCases.OrderBy(t => t.Key).ThenBy(t => t.Name).ToList();
@@ -60,6 +66,19 @@ public sealed class AutomationWorkspaceStore
                     testCase.Steps = testCase.Steps.OrderBy(s => s.Order).ToList();
             }
         }
-        await File.WriteAllTextAsync(_projectsFile, JsonSerializer.Serialize(normalized, JsonOptions));
+            var json = JsonSerializer.Serialize(normalized, JsonOptions);
+            var tempFile = _projectsFile + ".tmp";
+            await File.WriteAllTextAsync(tempFile, json);
+            File.Move(tempFile, _projectsFile, true);
+        }
+        catch (Exception ex)
+        {
+            TechnicalLogService.Error(nameof(AutomationWorkspaceStore), "SaveProjects", ex);
+            throw;
+        }
+        finally
+        {
+            SaveGate.Release();
+        }
     }
 }

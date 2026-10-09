@@ -4,8 +4,14 @@ namespace QAFlowRecorder.Models;
 
 public enum AutomationCaseMode { Manual, Guided, Assisted, Automated }
 public enum AutomationCaseStatus { Draft, Ready, NeedsReview, Archived }
-public enum AutomationAssertionType { ElementVisible, ElementNotVisible, ElementEnabled, TextContains, UrlContains, TitleContains }
+public enum AutomationAssertionType { ElementVisible, ElementNotVisible, ElementEnabled, ElementTextContains, ElementTextEquals, ElementAttributeEquals, TextContains, UrlContains, TitleContains, VisualBaselineMatch, NoConsoleErrors, NoNetworkErrors, MaxPageLoadMs, MaxDomContentLoadedMs, MaxFirstContentfulPaintMs, MaxResourceDurationMs }
+public enum AutomationWaitCondition { Auto, None, DocumentReady, ElementPresent, ElementVisible, ElementEnabled, ElementHidden }
+public enum AutomationWindowTarget { Current, Newest, First, Last, TitleContains }
+public enum AutomationFrameTarget { DefaultContent, CssSelector, NameOrId, Index }
+public enum AutomationShadowDomMode { None, OpenShadowPath }
 public enum AutomationFailureAction { StopTest, ContinueTest, ManualCheckpoint }
+public enum AutomationHealingMode { Off, Conservative, Advanced }
+public enum AutomationStepConditionType { Always, IfElementExists, IfElementNotExists, IfUrlContains, IfTitleContains, IfVariableEquals, IfVariableNotEquals }
 
 public sealed class AutomationAssertion
 {
@@ -59,13 +65,54 @@ public sealed class AutomationTestStep
     public string CaptureNote { get; set; } = "";
     public string ValueExpression { get; set; } = "";
     public List<AutomationAssertion> Assertions { get; set; } = [];
+    public AutomationWaitCondition WaitCondition { get; set; } = AutomationWaitCondition.Auto;
+    public int WaitTimeoutMs { get; set; } = 10000;
+    public int WaitPollMs { get; set; } = 250;
+    public AutomationWindowTarget WindowTarget { get; set; } = AutomationWindowTarget.Current;
+    public string WindowMatch { get; set; } = "";
+    public AutomationFrameTarget FrameTarget { get; set; } = AutomationFrameTarget.DefaultContent;
+    public string FrameValue { get; set; } = "";
+    public AutomationShadowDomMode ShadowDomMode { get; set; } = AutomationShadowDomMode.None;
+    public string ShadowCssPath { get; set; } = "";
+    public bool CloseCurrentWindowAfterStep { get; set; }
+    public bool AllowJavaScriptClickFallback { get; set; } = true;
+    // Phase 15 Block 1: optional API helper settings. These remain advanced and web-scope constrained.
+    public string ApiMethod { get; set; } = "GET";
+    public string ApiUrl { get; set; } = "";
+    public string ApiBody { get; set; } = "";
+    public string ApiContentType { get; set; } = "application/json";
+    public int ApiExpectedStatus { get; set; } = 200;
+    public string ApiHeadersExpression { get; set; } = "";
+    // Phase 15 Block 2: optional conditional execution. Advanced only; normal Recorder is unaffected.
+    public AutomationStepConditionType ConditionType { get; set; } = AutomationStepConditionType.Always;
+    public string ConditionExpression { get; set; } = "";
+    public string ConditionExpected { get; set; } = "";
+    // Phase 15 Block 3: controlled repetition. Advanced only and deliberately bounded.
+    public int RepeatCount { get; set; } = 1;
+    public int RepeatDelayMs { get; set; } = 0;
     public int MaxRetries { get; set; } = 1;
     public int RetryDelayMs { get; set; } = 600;
     public AutomationFailureAction OnFailure { get; set; } = AutomationFailureAction.StopTest;
+    // Phase 15 Block 4: advanced selector self-healing. Conservative remains the compatibility default.
+    public AutomationHealingMode HealingMode { get; set; } = AutomationHealingMode.Conservative;
+    public int HealingMinimumScore { get; set; } = 78;
+    public bool LearnHealedSelector { get; set; } = true;
     public int HealingCount { get; set; }
     public DateTimeOffset? LastHealedAt { get; set; }
     [JsonIgnore] public string DisplayName => $"{Order}. {Action} · {Target}";
+    [JsonIgnore] public string WaitDisplay => $"{WaitCondition} · {WaitTimeoutMs / 1000.0:0.#}s";
     [JsonIgnore] public string RecoveryDisplay => $"{MaxRetries} retry · {OnFailure}";
+    [JsonIgnore] public string InteractionDisplay => string.IsNullOrWhiteSpace(Action) ? "—" : Action + (AllowJavaScriptClickFallback && Action.Equals("Click", StringComparison.OrdinalIgnoreCase) ? " · JS fallback" : "");
+    [JsonIgnore] public string BrowserContextDisplay
+    {
+        get
+        {
+            var window = WindowTarget == AutomationWindowTarget.Current ? "Current window" : WindowTarget.ToString();
+            var frame = FrameTarget == AutomationFrameTarget.DefaultContent ? "Top document" : $"{FrameTarget}: {FrameValue}";
+            var shadow = ShadowDomMode == AutomationShadowDomMode.None ? "" : $" · Shadow DOM: {ShadowCssPath}";
+            return $"{window} · {frame}{shadow}" + (CloseCurrentWindowAfterStep ? " · close after" : "");
+        }
+    }
 }
 
 
@@ -107,6 +154,12 @@ public sealed class AutomationTestCase
     public string BaseUrlSnapshot { get; set; } = "";
     public int AutomationReadiness { get; set; }
     public Guid? DefaultDataSetId { get; set; }
+    // Phase 13 Blocks 7-8: advanced lifecycle + data-driven execution.
+    public Guid? BeforeTestComponentId { get; set; }
+    public Guid? AfterTestComponentId { get; set; }
+    public Guid? RequiredTestCaseId { get; set; }
+    public bool DataDrivenEnabled { get; set; }
+    public List<Guid> DataSetIds { get; set; } = [];
     public string ConversionSummary { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
@@ -123,6 +176,8 @@ public sealed class AutomationSuite
     public string Name { get; set; } = "New suite";
     public string Description { get; set; } = "";
     public int Order { get; set; }
+    public Guid? BeforeSuiteComponentId { get; set; }
+    public Guid? AfterSuiteComponentId { get; set; }
     public List<AutomationTestCase> TestCases { get; set; } = [];
     [JsonIgnore] public string DisplayName => $"{Name} · {TestCases.Count} case(s)";
     public override string ToString() => DisplayName;
@@ -169,6 +224,7 @@ public sealed class AutomationSchedule
     public string DaysOfWeek { get; set; } = "MON";
     public bool Enabled { get; set; } = true;
     public bool SendReport { get; set; } = true;
+    public bool BrowserHeadless { get; set; }
     public DateTimeOffset? LastRegisteredAt { get; set; }
     public string TaskName { get; set; } = "";
     [JsonIgnore] public string DisplayName => $"{Name} · {Frequency} {TimeOfDay}";

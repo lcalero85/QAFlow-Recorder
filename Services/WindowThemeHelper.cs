@@ -9,14 +9,16 @@ public static class WindowThemeHelper
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
-    public static void ApplyDarkTitleBar(Window window)
+    public static void ApplyDarkTitleBar(Window window) => ApplyTitleBar(window);
+
+    public static void ApplyTitleBar(Window window)
     {
         if (window is null) return;
         void Apply()
         {
             var hwnd = new WindowInteropHelper(window).Handle;
             if (hwnd == IntPtr.Zero) return;
-            var enabled = 1;
+            var enabled = ThemeManager.CurrentTheme == ThemeManager.Dark ? 1 : 0;
             _ = DwmSetWindowAttribute(hwnd, 20, ref enabled, sizeof(int));
             _ = DwmSetWindowAttribute(hwnd, 19, ref enabled, sizeof(int));
         }

@@ -32,6 +32,9 @@ public sealed class AutomationStepRun
     public int RetryCount { get; set; }
     public bool SelectorHealed { get; set; }
     public string HealingMessage { get; set; } = "";
+    public int HealingScore { get; set; }
+    public string HealingStrategy { get; set; } = "";
+    public string LifecycleStage { get; set; } = "Test";
     [JsonIgnore] public string StatusDisplay => Status.ToString();
     [JsonIgnore] public string AssertionSummary => Assertions.Count == 0 ? "—" : $"{Assertions.Count(a => a.Status == AutomationAssertionRunStatus.Passed)}/{Assertions.Count}";
     [JsonIgnore] public string RecoverySummary => SelectorHealed ? $"Healed · {RetryCount} retry" : RetryCount > 0 ? $"{RetryCount} retry" : "—";

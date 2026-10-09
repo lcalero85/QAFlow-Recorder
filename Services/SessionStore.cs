@@ -34,7 +34,7 @@ public sealed class SessionStore
                 var s = JsonSerializer.Deserialize<TestSession>(await File.ReadAllTextAsync(file));
                 if (s is not null) list.Add(s);
             }
-            catch { }
+            catch (Exception ex) { TechnicalLogService.Warn(nameof(SessionStore), "LoadSession", ex.Message, ex); }
         }
         return list.OrderByDescending(s => s.StartedAt).Take(50).ToList();
     }
@@ -46,7 +46,7 @@ public sealed class SessionStore
             if (File.Exists(SettingsFile))
                 return JsonSerializer.Deserialize<AppSettings>(await File.ReadAllTextAsync(SettingsFile)) ?? new();
         }
-        catch { }
+        catch (Exception ex) { TechnicalLogService.Warn(nameof(SessionStore), "LoadSettings", ex.Message, ex); }
         return new();
     }
 
@@ -101,7 +101,7 @@ public sealed class SessionStore
         var dirs = new DirectoryInfo(SessionRoot).EnumerateDirectories().OrderByDescending(d => d.LastWriteTimeUtc).ToList();
         foreach (var d in dirs.Skip(50))
         {
-            try { d.Delete(true); } catch { }
+            try { d.Delete(true); } catch (Exception ex) { TechnicalLogService.Warn(nameof(SessionStore), "TrimHistory", ex.Message, ex); }
         }
     }
 }

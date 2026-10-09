@@ -19,7 +19,8 @@ public sealed class AutomationSchedulerService
 
         var taskName = BuildTaskName(project, schedule);
         var envArg = schedule.EnvironmentId.HasValue ? $" --environment {schedule.EnvironmentId.Value}" : "";
-        var command = $"\"{exe}\" --run-suite {project.Id} {schedule.SuiteId}{envArg} --send-report {schedule.SendReport.ToString().ToLowerInvariant()} --headless";
+        var browserHeadlessArg = schedule.BrowserHeadless ? " --browser-headless true" : "";
+        var command = $"\"{exe}\" --run-suite {project.Id} {schedule.SuiteId}{envArg} --send-report {schedule.SendReport.ToString().ToLowerInvariant()} --noninteractive{browserHeadlessArg}";
         var args = new List<string> { "/Create", "/TN", Quote(taskName), "/TR", Quote(command), "/ST", time.ToString(@"hh\:mm"), "/F" };
         if (schedule.Frequency == AutomationScheduleFrequency.Weekly)
         {

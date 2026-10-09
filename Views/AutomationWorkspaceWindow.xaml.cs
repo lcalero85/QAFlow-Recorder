@@ -28,6 +28,7 @@ public partial class AutomationWorkspaceWindow : Window
     private AutomationGovernanceDocument? _governanceDocument;
     private AutomationQualitySnapshot? _qualitySnapshot;
     private ConversionPreview? _conversionPreview;
+    private CancellationTokenSource? _persistDebounce;
     private bool _loading;
     private Guid? _selectedVariableId;
     private readonly AutomationSchedulerService _scheduler = new();
@@ -43,6 +44,7 @@ public partial class AutomationWorkspaceWindow : Window
     private ReusableAutomationComponent? CurrentComponent => ComponentsGrid.SelectedItem as ReusableAutomationComponent;
     private AutomationTestCase? RecoveryCase => RecoveryCaseBox.SelectedItem as AutomationTestCase;
     private AutomationTestStep? RecoveryStep => RecoveryStepBox.SelectedItem as AutomationTestStep;
+    private AutomationTestCase? LifecycleCase => LifecycleCaseBox.SelectedItem as AutomationTestCase;
 
     public AutomationWorkspaceWindow(AppSettings settings)
     {
@@ -52,12 +54,19 @@ public partial class AutomationWorkspaceWindow : Window
         ModeColumn.ItemsSource = Enum.GetValues<AutomationCaseMode>();
         StatusColumn.ItemsSource = Enum.GetValues<AutomationCaseStatus>();
         FailureActionBox.ItemsSource = Enum.GetValues<AutomationFailureAction>();
+        HealingModeBox.ItemsSource = Enum.GetValues<AutomationHealingMode>();
+        ConditionTypeBox.ItemsSource = Enum.GetValues<AutomationStepConditionType>();
+        WaitConditionBox.ItemsSource = Enum.GetValues<AutomationWaitCondition>();
+        WindowTargetBox.ItemsSource = Enum.GetValues<AutomationWindowTarget>();
+        FrameTargetBox.ItemsSource = Enum.GetValues<AutomationFrameTarget>();
+        InteractionActionBox.ItemsSource = new[] { "Click", "DoubleClick", "RightClick", "Hover", "Input", "Clear", "Select", "Check", "Uncheck", "SelectRadio", "KeyPress", "Scroll", "ScrollToElement", "UploadFile", "ValidateDownload", "SetCookie", "DeleteCookie", "ClearCookies", "SetLocalStorage", "RemoveLocalStorage", "ClearLocalStorage", "SetSessionStorage", "RemoveSessionStorage", "ClearSessionStorage", "ApiRequest", "Submit", "Navigate" };
+        ApiMethodBox.ItemsSource = new[] { "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD" };
         ScheduleFrequencyBox.ItemsSource = Enum.GetValues<AutomationScheduleFrequency>();
         ScheduleFrequencyBox.SelectedIndex = 0;
         Loaded += async (_, _) => await LoadAsync();
-        ProjectHintText.Text = "Phase 12 adds test case versioning, approval workflow and a local audit trail without changing Recorder behavior.";
+        ProjectHintText.Text = "Phase 16 Block 7 closes the cross-browser cycle with an executive matrix summary, consolidated evidence and QA sign-off guidance. The normal Recorder remains unchanged.";
         ConversionHintText.Text = "DOM selectors remain the preferred source. Desktop and out-of-scope steps stay manual/evidence checkpoints.";
-        StatusText.Text = "Local workspace · Phase 12 governance enabled · web automation only · Recorder remains independent";
+        StatusText.Text = "Local workspace · Phase 16 Block 7 · cross-browser closure · web automation only · Recorder remains independent";
         ApplyLanguage();
     }
 
@@ -76,7 +85,7 @@ public partial class AutomationWorkspaceWindow : Window
         ProjectNameLabel.Text = "Nombre del proyecto";
         BaseUrlLabel.Text = "URL base";
         BrowserLabel.Text = "Navegador";
-        ProjectHintText.Text = "La Fase 12 mantiene el Recorder independiente y agrega versionado, aprobación y trazabilidad local de casos de prueba.";
+        ProjectHintText.Text = "La Fase 16 Bloque 7 cierra el ciclo cross-browser con resumen ejecutivo de matriz, evidencia consolidada y guía para aprobación QA. El Recorder normal permanece sin cambios.";
         ModeBadgeText.Text = "SOLO WEB · QUEUE + PARALLEL + MATRIX";
         SuitesTab.Header = "Suites";
         SuitesHelpText.Text = "Agrupa casos relacionados dentro de suites.";
@@ -92,15 +101,20 @@ public partial class AutomationWorkspaceWindow : Window
         CloseButton.Content = "Cerrar";
         QueueMatrixTab.Header = "Cola y matriz de navegadores";
         QueueTitleText.Text = "Cola de ejecución y matriz de navegadores";
-        QueueHelpText.Text = "Encola la suite seleccionada para Chrome, Edge o ambos. QAFlow ejecuta trabajos web independientes en paralelo con un límite de concurrencia controlado.";
+        QueueHelpText.Text = "Encola la suite seleccionada para Chrome, Edge, Firefox o cualquier combinación. QAFlow ejecuta trabajos independientes y compara automáticamente los resultados del mismo batch entre navegadores.";
         QueueSuiteLabel.Text = "Suite seleccionada";
         QueueEnvironmentLabel.Text = "Ambiente";
         ConcurrencyLabel.Text = "Paralelo";
         QueueChromeCheck.Content = "Chrome";
         QueueEdgeCheck.Content = "Edge";
+        QueueFirefoxCheck.Content = "Firefox";
         StopBatchOnFailureCheck.Content = "Detener los trabajos restantes de la matriz si falla un navegador";
+        QueueBrowserHeadlessCheck.Content = "Navegador headless (avanzado)";
+        ScheduleBrowserHeadlessCheck.Content = "Navegador headless (avanzado)";
         QueueStateText.Text = "Cola inactiva";
         QueueMatrixButton.Content = "＋ Encolar matriz";
+        BrowserPreflightButton.Content = "Diagnóstico de navegadores";
+        BrowserPreflightStateText.Text = "Comprueba la disponibilidad local de Chrome, Edge y Firefox seleccionados antes de ejecutar la matriz.";
         StartQueueButton.Content = "▶ Iniciar cola";
         CancelQueueButton.Content = "Detener";
         OpenQueuedReportButton.Content = "Abrir reporte";
@@ -117,11 +131,12 @@ public partial class AutomationWorkspaceWindow : Window
         InstrumentationTab.Header = "Instrumentación web";
         InstrumentationTitleText.Text = "Instrumentación DOM e inteligencia de selectores";
         InstrumentationHelpText.Text = "QAFlow enriquece las acciones web grabadas con metadata DOM y prioriza selectores estables. Nunca captura los valores escritos.";
-        InstrumentationStepsTitle.Text = "Conectar Chrome o Edge";
-        InstrumentationStepsText.Text = "1. Abre la página de extensiones del navegador.\n2. Activa el modo desarrollador.\n3. Selecciona Cargar descomprimida y elige la carpeta WebInstrumentationExtension de QAFlow.\n4. Mantén QAFlow en Hybrid Testing con una URL base válida.\n\nLa extensión solo se comunica con 127.0.0.1 en este equipo y solo envía metadata DOM dentro del alcance configurado.";
+        InstrumentationStepsTitle.Text = "Conectar instrumentación del navegador";
+        InstrumentationStepsText.Text = "Chrome/Edge: abre Extensiones, activa el modo desarrollador y carga la carpeta WebInstrumentationExtension.\nFirefox: abre about:debugging, entra a Este Firefox → Cargar complemento temporal y selecciona WebInstrumentationExtensionFirefox/manifest.json.\n\nMantén QAFlow en Hybrid Testing con una URL base válida. La instrumentación solo se comunica con 127.0.0.1 y nunca captura valores escritos.";
         SelectorPolicyText.Text = "Prioridad de selectores: data-testid → id estable → name → aria-label → role + nombre accesible → CSS → XPath. UI Automation queda solo como respaldo.";
         InstrumentationPrivacyText.Text = "No se capturan valores de campos. Recorder Only desactiva la aceptación de eventos DOM.";
-        OpenExtensionFolderButton.Content = "Abrir carpeta de extensión";
+        OpenExtensionFolderButton.Content = "Chrome / Edge";
+        OpenFirefoxExtensionFolderButton.Content = "Firefox";
         RefreshInstrumentationButton.Content = "Actualizar estado";
         RunsTab.Header = "Ejecuciones";
         RunsTitleText.Text = "Ejecuciones de automatización web";
@@ -173,23 +188,63 @@ public partial class AutomationWorkspaceWindow : Window
         SaveVariableButton.Content = "Agregar / actualizar";
         DeleteVariableButton.Content = "Eliminar variable seleccionada";
         AssertionsTitleText.Text = "Datos por paso y validaciones";
-        AssertionsHelpText.Text = "Vincula inputs/selects a datos de prueba y valida el estado esperado del navegador después de un paso.";
+        AssertionsHelpText.Text = "Vincula datos de prueba y valida estado, visuales y diagnósticos técnicos del navegador después de un paso.";
         AssertionCaseLabel.Text = "Caso de prueba";
         AssertionStepLabel.Text = "Paso";
         DefaultDataSetLabel.Text = "Conjunto de datos predeterminado";
         ValueExpressionLabel.Text = "Expresión de valor del paso";
         AddAssertionButton.Content = "＋ Validación";
         DeleteAssertionButton.Content = "Eliminar";
+        UpdateAutomationVisualBaselineButton.Content = "Actualizar baseline visual desde último run";
+        LifecycleDataTab.Header = "Lifecycle y Data-driven";
+        LifecycleTitleText.Text = "Lifecycle avanzado de pruebas";
+        LifecycleHelpText.Text = "Fixtures reutilizables opcionales alrededor de suites y casos. Nunca bloquean el flujo normal del Recorder.";
+        BeforeSuiteLabel.Text = "Antes de la suite";
+        AfterSuiteLabel.Text = "Después de la suite";
+        LifecycleCaseLabel.Text = "Caso de prueba";
+        BeforeTestLabel.Text = "Antes del caso";
+        AfterTestLabel.Text = "Después del caso";
+        DependencyLabel.Text = "Ejecutar solo después de que este caso apruebe (opcional)";
+        DataDrivenTitleText.Text = "Ejecución data-driven";
+        DataDrivenHelpText.Text = "Ejecuta el caso seleccionado una vez por cada conjunto de datos elegido. Cada iteración conserva evidencia y reporte HTML propios.";
+        DataDrivenEnabledCheck.Content = "Habilitar múltiples iteraciones de datos para este caso";
+        DataDrivenHintText.Text = "Tip: Ctrl/Shift selecciona varios conjuntos. Los secretos continúan en el Administrador de credenciales de Windows.";
+        SaveLifecycleButton.Content = "Guardar opciones avanzadas";
+        ClearLifecycleButton.Content = "Limpiar opciones avanzadas";
         ComponentsRecoveryTab.Header = "Componentes y recuperación";
         ComponentsTitleText.Text = "Componentes web reutilizables";
         ComponentsHelpText.Text = "Convierte flujos estables en bloques reutilizables e insértalos en otros casos de prueba.";
         CreateComponentButton.Content = "Guardar caso seleccionado como componente";
         InsertComponentButton.Content = "Insertar en caso seleccionado";
         DeleteComponentButton.Content = "Eliminar";
-        RecoveryTitleText.Text = "Recuperación y self-healing";
-        RecoveryHelpText.Text = "Configura reintentos y comportamiento ante fallos. Si un selector estable cambia, QAFlow intenta una recuperación semántica conservadora antes de solicitar intervención o fallar.";
+        RecoveryTitleText.Text = "Recuperación, esperas y self-healing";
+        SmartWaitLabel.Text = "Espera inteligente";
+        WaitConditionLabel.Text = "Condición";
+        AdvancedInteractionLabel.Text = "Interacción web avanzada";
+        InteractionActionLabel.Text = "Acción";
+        InteractionValueHelpText.Text = "Expresión de valor: KeyPress = ENTER/CTRL+A · UploadFile = ruta · ValidateDownload = *.pdf · Cookie/Storage = clave=valor. ApiRequest usa la sección API helper.";
+        ApiHelperExpander.Header = "API helper (avanzado)";
+        ApiHelperHelpText.Text = "Solicitud opcional de preparación/limpieza. El endpoint debe permanecer dentro de la URL base o dominios permitidos del proyecto.";
+        ApiMethodLabel.Text = "Método"; ApiUrlLabel.Text = "URL / endpoint relativo"; ApiStatusLabel.Text = "Estado esperado";
+        ApiContentTypeLabel.Text = "Content-Type"; ApiHeadersLabel.Text = "Headers (uno por línea: Nombre=Valor)"; ApiBodyLabel.Text = "Body de la solicitud (admite variables del Data Set)";
+        JavaScriptClickFallbackCheck.Content = "Permitir clic JavaScript de respaldo cuando el clic normal sea interceptado";
+        BrowserContextLabel.Text = "Contexto del navegador · pestañas/ventanas e iframe";
+        WindowTargetLabel.Text = "Ventana / pestaña";
+        WindowMatchLabel.Text = "Título contiene";
+        FrameTargetLabel.Text = "Frame";
+        FrameValueLabel.Text = "Valor del frame";
+        CloseWindowAfterStepCheck.Content = "Cerrar pestaña/ventana actual después de las validaciones";
+        WaitTimeoutLabel.Text = "Tiempo máximo (ms)";
+        WaitPollLabel.Text = "Intervalo (ms)";
+        RecoveryHelpText.Text = "Configura reintentos y comportamiento ante fallos. Si un selector estable cambia, QAFlow intenta una recuperación segura antes de solicitar intervención o fallar.";
+        SelfHealingExpander.Header = "Inteligencia de self-healing (avanzado)";
+        SelfHealingHelpText.Text = "El modo avanzado puntúa señales semánticas y estructurales, acepta únicamente un mejor candidato claro y puede aprender el selector recuperado. El modo conservador mantiene el comportamiento anterior.";
+        HealingModeLabel.Text = "Modo";
+        HealingScoreLabel.Text = "Puntaje mínimo (0-100)";
+        LearnHealedSelectorCheck.Content = "Aprender selector exitoso";
+        SelfHealingSignalsText.Text = "Puntaje avanzado: nombre accesible, rol, etiqueta HTML, label/placeholder/title, texto visible y contexto DOM local. Si un segundo candidato queda demasiado cerca, QAFlow rechaza la recuperación por seguridad.";
         SaveRecoveryButton.Content = "Guardar política de recuperación";
-        HealingStatusText.Text = "El self-healing solo acepta coincidencias semánticas únicas y seguras. Los selectores recuperados se incorporan al perfil del paso.";
+        HealingStatusText.Text = "El self-healing usa Conservative por defecto. El modo Advanced puntúa señales semánticas y estructurales, rechaza coincidencias ambiguas y permite decidir si se aprende el selector recuperado.";
         QualityAnalyticsTab.Header = "Inteligencia de calidad";
         QualityTitleText.Text = "Inteligencia de calidad";
         QualityHelpText.Text = "Analiza el historial de ejecuciones para detectar casos flaky, patrones recurrentes de fallo y tendencias sin modificar la lógica de prueba.";
@@ -216,7 +271,7 @@ public partial class AutomationWorkspaceWindow : Window
         RefreshQualityButton.Content = "Actualizar";
         ExportQualityButton.Content = "Exportar HTML";
         RerunFailedButton.Content = "↻ Reejecutar casos fallidos";
-        StatusText.Text = "Espacio local · Fase 11 inteligencia de calidad habilitada · automatización solo web · automatización de escritorio deshabilitada";
+        StatusText.Text = "Espacio local · Fase 16 Bloque 7 · cierre cross-browser · Recorder independiente";
     }
 
     private async Task LoadAsync()
@@ -248,11 +303,35 @@ public partial class AutomationWorkspaceWindow : Window
         _queueSettings = await _queueStore.LoadSettingsAsync();
         ConcurrencyBox.SelectedIndex = Math.Clamp(_queueSettings.MaxConcurrency, 1, 4) - 1;
         StopBatchOnFailureCheck.IsChecked = _queueSettings.StopBatchOnFailure;
+        QueueBrowserHeadlessCheck.IsChecked = _queueSettings.BrowserHeadless;
         _loading = false;
         if (_projects.Count > 0) ProjectsList.SelectedIndex = 0;
         RefreshEditorState();
         RefreshInstrumentationStatus();
         await RefreshQualityAnalyticsAsync();
+    }
+
+    private void SchedulePersist(int delayMs = 450)
+    {
+        if (_loading) return;
+        _persistDebounce?.Cancel();
+        _persistDebounce?.Dispose();
+        var cts = _persistDebounce = new CancellationTokenSource();
+        _ = PersistDebouncedAsync(cts, delayMs);
+    }
+
+    private async Task PersistDebouncedAsync(CancellationTokenSource cts, int delayMs)
+    {
+        try
+        {
+            await Task.Delay(delayMs, cts.Token);
+            if (!cts.IsCancellationRequested) await PersistAsync();
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            TechnicalLogService.Error(nameof(AutomationWorkspaceWindow), "DebouncedPersist", ex);
+        }
     }
 
     private async Task PersistAsync(string? message = null)
@@ -277,7 +356,7 @@ public partial class AutomationWorkspaceWindow : Window
         RunSuiteButton.IsEnabled = CurrentSuite is not null;
         ProjectNameBox.Text = p?.Name ?? "";
         BaseUrlBox.Text = p?.BaseUrl ?? "";
-        BrowserBox.SelectedIndex = string.Equals(p?.DefaultBrowser, "Edge", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        BrowserBox.SelectedIndex = string.Equals(p?.DefaultBrowser, "Firefox", StringComparison.OrdinalIgnoreCase) ? 2 : string.Equals(p?.DefaultBrowser, "Edge", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         SuitesGrid.ItemsSource = p?.Suites;
         ConversionSuiteBox.ItemsSource = p?.Suites;
         DataSetsGrid.ItemsSource = p?.DataSets;
@@ -285,6 +364,13 @@ public partial class AutomationWorkspaceWindow : Window
         AssertionCaseBox.ItemsSource = p?.Suites.SelectMany(s => s.TestCases).ToList();
         DefaultDataSetBox.ItemsSource = p?.DataSets;
         ComponentsGrid.ItemsSource = p?.Components;
+        LifecycleCaseBox.ItemsSource = CurrentSuite?.TestCases;
+        BeforeSuiteComponentBox.ItemsSource = p?.Components;
+        AfterSuiteComponentBox.ItemsSource = p?.Components;
+        BeforeTestComponentBox.ItemsSource = p?.Components;
+        AfterTestComponentBox.ItemsSource = p?.Components;
+        DataDrivenSetsList.ItemsSource = p?.DataSets;
+        if (LifecycleCaseBox.SelectedItem is null && CurrentCase is not null) LifecycleCaseBox.SelectedItem = CurrentCase;
         RecoveryCaseBox.ItemsSource = p?.Suites.SelectMany(s => s.TestCases).ToList();
         if (RecoveryCaseBox.SelectedItem is null && (p?.TestCaseCount ?? 0) > 0) RecoveryCaseBox.SelectedIndex = 0;
         if (p?.Suites.Count > 0)
@@ -312,6 +398,7 @@ public partial class AutomationWorkspaceWindow : Window
         RefreshCaseEditor();
         RefreshDataAssertionsState();
         RefreshComponentsRecoveryState();
+        RefreshLifecycleState();
         RefreshDeliveryState();
     }
 
@@ -337,6 +424,7 @@ public partial class AutomationWorkspaceWindow : Window
         CaseStepsGrid.ItemsSource = tc?.Steps;
         if (tc is not null && AssertionCaseBox.SelectedItem is null) AssertionCaseBox.SelectedItem = tc;
         if (tc is not null && RecoveryCaseBox.SelectedItem is null) RecoveryCaseBox.SelectedItem = tc;
+        if (tc is not null) LifecycleCaseBox.SelectedItem = tc;
         _loading = false;
         RefreshComponentsRecoveryState();
     }
@@ -443,6 +531,8 @@ public partial class AutomationWorkspaceWindow : Window
         tc.Name = restored.Name; tc.Description = restored.Description; tc.Preconditions = restored.Preconditions; tc.ExpectedOutcome = restored.ExpectedOutcome;
         tc.Mode = restored.Mode; tc.Status = AutomationCaseStatus.NeedsReview; tc.BaseUrlSnapshot = restored.BaseUrlSnapshot;
         tc.AutomationReadiness = restored.AutomationReadiness; tc.DefaultDataSetId = restored.DefaultDataSetId; tc.ConversionSummary = restored.ConversionSummary;
+        tc.BeforeTestComponentId = restored.BeforeTestComponentId; tc.AfterTestComponentId = restored.AfterTestComponentId; tc.RequiredTestCaseId = restored.RequiredTestCaseId;
+        tc.DataDrivenEnabled = restored.DataDrivenEnabled; tc.DataSetIds = restored.DataSetIds?.ToList() ?? [];
         tc.Steps = CloneSteps(restored.Steps); tc.UpdatedAt = DateTimeOffset.Now;
         await _governanceService.LogAsync(project.Id, _settings.QaName, "VersionRestored", "TestCase", tc.Id, tc.DisplayName, $"Restored content from v{version.Version}; a new version will be created.");
         var created = await _governanceService.CreateVersionAsync(project.Id, tc, _settings.QaName, $"Restored from v{version.Version}. {VersionNoteBox.Text}".Trim());
@@ -575,22 +665,22 @@ public partial class AutomationWorkspaceWindow : Window
         RefreshCaseEditor();
     }
 
-    private async void ProjectEditor_Changed(object sender, EventArgs e)
+    private void ProjectEditor_Changed(object sender, EventArgs e)
     {
         if (_loading || CurrentProject is not AutomationProject p) return;
         p.Name = string.IsNullOrWhiteSpace(ProjectNameBox.Text) ? p.Name : ProjectNameBox.Text.Trim();
         p.BaseUrl = BaseUrlBox.Text.Trim();
-        p.DefaultBrowser = BrowserBox.SelectedIndex == 1 ? "Edge" : "Chrome";
-        await PersistAsync();
+        p.DefaultBrowser = BrowserBox.SelectedIndex == 2 ? "Firefox" : BrowserBox.SelectedIndex == 1 ? "Edge" : "Chrome";
+        SchedulePersist();
     }
 
-    private async void CaseEditor_Changed(object sender, TextChangedEventArgs e)
+    private void CaseEditor_Changed(object sender, TextChangedEventArgs e)
     {
         if (_loading || CurrentCase is not AutomationTestCase tc) return;
         tc.Description = CaseDescriptionBox.Text.Trim();
         tc.ExpectedOutcome = CaseExpectedBox.Text.Trim();
         tc.UpdatedAt = DateTimeOffset.Now;
-        await PersistAsync();
+        SchedulePersist();
     }
 
     private async void SuitesGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
@@ -648,6 +738,12 @@ public partial class AutomationWorkspaceWindow : Window
         AssertionsGrid.ItemsSource = step?.Assertions;
         AddAssertionButton.IsEnabled = step is not null;
         DeleteAssertionButton.IsEnabled = AssertionsGrid.SelectedItem is AutomationAssertion;
+        UpdateAutomationVisualBaselineButton.IsEnabled = step is not null;
+        VisualBaselineStatusText.Text = step is null
+            ? (IsSpanish ? "Baseline visual: selecciona un paso." : "Visual baseline: select a step.")
+            : AutomationVisualBaselineService.HasBaseline(step.Id)
+                ? (IsSpanish ? "Baseline visual disponible para este paso." : "Visual baseline is available for this step.")
+                : (IsSpanish ? "Sin baseline visual. Usa un run previo como referencia." : "No visual baseline yet. Use a previous run as reference.");
         _loading = false;
     }
 
@@ -781,18 +877,23 @@ public partial class AutomationWorkspaceWindow : Window
         await PersistAsync();
     }
 
-    private async void ValueExpressionBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void ValueExpressionBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (_loading || AssertionStep is not AutomationTestStep step) return;
         step.ValueExpression = ValueExpressionBox.Text.Trim();
-        await PersistAsync();
+        SchedulePersist();
     }
 
     private async void AddAssertion_Click(object sender, RoutedEventArgs e)
     {
         if (AssertionStep is not AutomationTestStep step || AssertionTypeBox.SelectedItem is not AutomationAssertionType type) return;
         var assertion = new AutomationAssertion { Type = type, Expected = AssertionExpectedBox.Text.Trim(), UseStepTarget = true };
-        if ((type is AutomationAssertionType.UrlContains or AutomationAssertionType.TitleContains or AutomationAssertionType.TextContains) && string.IsNullOrWhiteSpace(assertion.Expected))
+        if (type == AutomationAssertionType.VisualBaselineMatch && string.IsNullOrWhiteSpace(assertion.Expected)) assertion.Expected = "95";
+        if (type == AutomationAssertionType.MaxPageLoadMs && string.IsNullOrWhiteSpace(assertion.Expected)) assertion.Expected = "3000";
+        if (type == AutomationAssertionType.MaxDomContentLoadedMs && string.IsNullOrWhiteSpace(assertion.Expected)) assertion.Expected = "2000";
+        if (type == AutomationAssertionType.MaxFirstContentfulPaintMs && string.IsNullOrWhiteSpace(assertion.Expected)) assertion.Expected = "1800";
+        if (type == AutomationAssertionType.MaxResourceDurationMs && string.IsNullOrWhiteSpace(assertion.Expected)) assertion.Expected = "1500";
+        if ((type is AutomationAssertionType.UrlContains or AutomationAssertionType.TitleContains or AutomationAssertionType.TextContains or AutomationAssertionType.ElementTextContains or AutomationAssertionType.ElementTextEquals or AutomationAssertionType.ElementAttributeEquals or AutomationAssertionType.MaxPageLoadMs or AutomationAssertionType.MaxDomContentLoadedMs or AutomationAssertionType.MaxFirstContentfulPaintMs or AutomationAssertionType.MaxResourceDurationMs) && string.IsNullOrWhiteSpace(assertion.Expected))
         {
             AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "Esta validación requiere un valor esperado." : "This assertion requires an expected value.", _settings.UiLanguage);
             return;
@@ -801,6 +902,32 @@ public partial class AutomationWorkspaceWindow : Window
         await PersistAsync(IsSpanish ? "Validación agregada." : "Assertion added.");
         AssertionsGrid.Items.Refresh();
         AssertionExpectedBox.Text = "";
+    }
+
+    private void UpdateAutomationVisualBaseline_Click(object sender, RoutedEventArgs e)
+    {
+        if (AssertionCase is not AutomationTestCase tc || AssertionStep is not AutomationTestStep step) return;
+        var previous = _runs
+            .Where(r => r.TestCaseId == tc.Id)
+            .OrderByDescending(r => r.StartedAt)
+            .SelectMany(r => r.Steps.Where(sr => sr.TestStepId == step.Id)
+                .OrderByDescending(sr => sr.FinishedAt ?? sr.StartedAt)
+                .Select(sr => new { Run = r, Step = sr }))
+            .FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Step.ScreenshotPath) && File.Exists(x.Step.ScreenshotPath));
+        if (previous is null)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "No hay evidencia de un run anterior para este paso. Ejecuta el caso al menos una vez y vuelve a intentarlo." : "No previous run evidence is available for this step. Run the test case at least once and try again.", _settings.UiLanguage);
+            return;
+        }
+        try
+        {
+            AutomationVisualBaselineService.SaveBaseline(step.Id, previous.Step.ScreenshotPath);
+            VisualBaselineStatusText.Text = IsSpanish ? $"Baseline actualizado desde run {previous.Run.StartedDisplay}." : $"Baseline updated from run {previous.Run.StartedDisplay}.";
+        }
+        catch (Exception ex)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", (IsSpanish ? "No se pudo actualizar el baseline visual: " : "Could not update the visual baseline: ") + ex.GetBaseException().Message, _settings.UiLanguage);
+        }
     }
 
     private async void DeleteAssertion_Click(object sender, RoutedEventArgs e)
@@ -818,7 +945,7 @@ public partial class AutomationWorkspaceWindow : Window
         EnvironmentNameBox.Text = env?.Name ?? "";
         EnvironmentBaseUrlBox.Text = env?.BaseUrl ?? "";
         EnvironmentDomainsBox.Text = env?.AllowedDomains ?? "";
-        EnvironmentBrowserBox.SelectedIndex = string.Equals(env?.Browser, "Edge", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        EnvironmentBrowserBox.SelectedIndex = string.Equals(env?.Browser, "Firefox", StringComparison.OrdinalIgnoreCase) ? 2 : string.Equals(env?.Browser, "Edge", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         EnvironmentDataSetBox.ItemsSource = CurrentProject?.DataSets;
         EnvironmentDataSetBox.SelectedItem = env?.DefaultDataSetId is Guid id ? CurrentProject?.DataSets.FirstOrDefault(d => d.Id == id) : null;
         EnvironmentDefaultCheck.IsChecked = env?.IsDefault == true;
@@ -841,6 +968,7 @@ public partial class AutomationWorkspaceWindow : Window
         ScheduleDaysBox.Text = item?.DaysOfWeek ?? "MON";
         ScheduleEnabledCheck.IsChecked = item?.Enabled ?? true;
         ScheduleSendCheck.IsChecked = item?.SendReport ?? true;
+        ScheduleBrowserHeadlessCheck.IsChecked = item?.BrowserHeadless ?? false;
         SaveScheduleButton.IsEnabled = CurrentProject is not null;
         RegisterScheduleButton.IsEnabled = item is not null;
         DeleteScheduleButton.IsEnabled = item is not null;
@@ -872,7 +1000,7 @@ public partial class AutomationWorkspaceWindow : Window
             AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "El ambiente requiere una URL base http/https válida." : "The environment requires a valid http/https Base URL.", _settings.UiLanguage); return;
         }
         env.Name = string.IsNullOrWhiteSpace(EnvironmentNameBox.Text) ? env.Name : EnvironmentNameBox.Text.Trim();
-        env.BaseUrl = url; env.AllowedDomains = EnvironmentDomainsBox.Text.Trim(); env.Browser = EnvironmentBrowserBox.SelectedIndex == 1 ? "Edge" : "Chrome";
+        env.BaseUrl = url; env.AllowedDomains = EnvironmentDomainsBox.Text.Trim(); env.Browser = EnvironmentBrowserBox.SelectedIndex == 2 ? "Firefox" : EnvironmentBrowserBox.SelectedIndex == 1 ? "Edge" : "Chrome";
         env.DefaultDataSetId = (EnvironmentDataSetBox.SelectedItem as AutomationDataSet)?.Id;
         if (EnvironmentDefaultCheck.IsChecked == true)
         {
@@ -916,7 +1044,7 @@ public partial class AutomationWorkspaceWindow : Window
         schedule.SuiteId = suite.Id; schedule.EnvironmentId = (ScheduleEnvironmentBox.SelectedItem as AutomationEnvironmentProfile)?.Id;
         schedule.Frequency = ScheduleFrequencyBox.SelectedItem is AutomationScheduleFrequency f ? f : AutomationScheduleFrequency.Daily;
         schedule.TimeOfDay = ScheduleTimeBox.Text.Trim(); schedule.DaysOfWeek = ScheduleDaysBox.Text.Trim();
-        schedule.Enabled = ScheduleEnabledCheck.IsChecked == true; schedule.SendReport = ScheduleSendCheck.IsChecked == true;
+        schedule.Enabled = ScheduleEnabledCheck.IsChecked == true; schedule.SendReport = ScheduleSendCheck.IsChecked == true; schedule.BrowserHeadless = ScheduleBrowserHeadlessCheck.IsChecked == true;
         await PersistAsync(IsSpanish ? "Programación guardada. Usa 'Registrar en Windows' para activarla." : "Schedule saved. Use 'Register in Windows' to activate it.");
         SchedulesGrid.Items.Refresh(); RegisterScheduleButton.IsEnabled = true;
     }
@@ -1031,8 +1159,9 @@ public partial class AutomationWorkspaceWindow : Window
             : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255,101,119));
 
         var connected = DateTimeOffset.Now - WebInstrumentationBridge.LastClientSeen < TimeSpan.FromSeconds(15);
+        var browser = WebInstrumentationBridge.LastClientBrowser;
         ExtensionStatusText.Text = connected
-            ? (IsSpanish ? "Conectada" : "Connected")
+            ? (IsSpanish ? $"Conectada{(string.IsNullOrWhiteSpace(browser) ? "" : $" · {browser}")}" : $"Connected{(string.IsNullOrWhiteSpace(browser) ? "" : $" · {browser}")}")
             : (IsSpanish ? "Esperando conexión" : "Waiting for connection");
         ExtensionStatusText.Foreground = connected
             ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(61,220,151))
@@ -1048,6 +1177,19 @@ public partial class AutomationWorkspaceWindow : Window
         {
             AppDialogWindow.ShowInfo(this, "QAFlow Recorder",
                 IsSpanish ? "No se encontró la carpeta de instrumentación web en esta publicación." : "The web instrumentation folder was not found in this build.",
+                _settings.UiLanguage);
+            return;
+        }
+        Process.Start(new ProcessStartInfo("explorer.exe", $"\"{path}\"") { UseShellExecute = true });
+    }
+
+    private void OpenFirefoxExtensionFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "WebInstrumentationExtensionFirefox");
+        if (!Directory.Exists(path))
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder",
+                IsSpanish ? "No se encontró la carpeta de instrumentación para Firefox en esta publicación." : "The Firefox instrumentation folder was not found in this build.",
                 _settings.UiLanguage);
             return;
         }
@@ -1082,11 +1224,112 @@ public partial class AutomationWorkspaceWindow : Window
         if (selectedStepId.HasValue) RecoveryStepBox.SelectedItem = tc?.Steps.FirstOrDefault(s => s.Id == selectedStepId.Value);
         if (RecoveryStepBox.SelectedItem is null && (tc?.Steps.Count ?? 0) > 0) RecoveryStepBox.SelectedIndex = 0;
         var step = RecoveryStep;
+        WaitConditionBox.SelectedItem = step?.WaitCondition ?? AutomationWaitCondition.Auto;
+        WaitTimeoutBox.Text = (step?.WaitTimeoutMs ?? 10000).ToString();
+        WaitPollBox.Text = (step?.WaitPollMs ?? 250).ToString();
         RecoveryRetriesBox.Text = (step?.MaxRetries ?? 1).ToString();
         RecoveryDelayBox.Text = (step?.RetryDelayMs ?? 600).ToString();
         FailureActionBox.SelectedItem = step?.OnFailure ?? AutomationFailureAction.StopTest;
+        HealingModeBox.SelectedItem = step?.HealingMode ?? AutomationHealingMode.Conservative;
+        HealingMinimumScoreBox.Text = (step?.HealingMinimumScore ?? 78).ToString();
+        LearnHealedSelectorCheck.IsChecked = step?.LearnHealedSelector != false;
+        WindowTargetBox.SelectedItem = step?.WindowTarget ?? AutomationWindowTarget.Current;
+        WindowMatchBox.Text = step?.WindowMatch ?? "";
+        FrameTargetBox.SelectedItem = step?.FrameTarget ?? AutomationFrameTarget.DefaultContent;
+        FrameValueBox.Text = step?.FrameValue ?? "";
+        ShadowDomCheck.IsChecked = step?.ShadowDomMode == AutomationShadowDomMode.OpenShadowPath;
+        ShadowCssPathBox.Text = step?.ShadowCssPath ?? "";
+        InteractionActionBox.SelectedItem = string.IsNullOrWhiteSpace(step?.Action) ? "Click" : step!.Action;
+        if (InteractionActionBox.SelectedItem is null && !string.IsNullOrWhiteSpace(step?.Action)) InteractionActionBox.Items.Add(step.Action);
+        ApiMethodBox.SelectedItem = string.IsNullOrWhiteSpace(step?.ApiMethod) ? "GET" : step!.ApiMethod.ToUpperInvariant();
+        if (ApiMethodBox.SelectedItem is null) ApiMethodBox.SelectedIndex = 0;
+        ApiUrlBox.Text = step?.ApiUrl ?? "";
+        ApiBodyBox.Text = step?.ApiBody ?? "";
+        ApiContentTypeBox.Text = string.IsNullOrWhiteSpace(step?.ApiContentType) ? "application/json" : step!.ApiContentType;
+        ApiExpectedStatusBox.Text = (step?.ApiExpectedStatus ?? 200).ToString();
+        ApiHeadersBox.Text = step?.ApiHeadersExpression ?? "";
+        ConditionTypeBox.SelectedItem = step?.ConditionType ?? AutomationStepConditionType.Always;
+        ConditionExpressionBox.Text = step?.ConditionExpression ?? "";
+        ConditionExpectedBox.Text = step?.ConditionExpected ?? "";
+        RepeatCountBox.Text = (step?.RepeatCount ?? 1).ToString();
+        RepeatDelayBox.Text = (step?.RepeatDelayMs ?? 0).ToString();
+        JavaScriptClickFallbackCheck.IsChecked = step?.AllowJavaScriptClickFallback != false;
+        CloseWindowAfterStepCheck.IsChecked = step?.CloseCurrentWindowAfterStep == true;
         SaveRecoveryButton.IsEnabled = step is not null;
         _loading = false;
+    }
+
+    private void LifecycleCaseBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        RefreshLifecycleState();
+    }
+
+    private void RefreshLifecycleState()
+    {
+        _loading = true;
+        var project = CurrentProject;
+        var suite = CurrentSuite;
+        var tc = LifecycleCase;
+        BeforeSuiteComponentBox.ItemsSource = project?.Components;
+        AfterSuiteComponentBox.ItemsSource = project?.Components;
+        BeforeTestComponentBox.ItemsSource = project?.Components;
+        AfterTestComponentBox.ItemsSource = project?.Components;
+        DataDrivenSetsList.ItemsSource = project?.DataSets;
+        DependencyCaseBox.ItemsSource = suite?.TestCases.Where(c => tc is null || c.Id != tc.Id).ToList();
+        BeforeSuiteComponentBox.SelectedItem = suite?.BeforeSuiteComponentId is Guid bs ? project?.Components.FirstOrDefault(c => c.Id == bs) : null;
+        AfterSuiteComponentBox.SelectedItem = suite?.AfterSuiteComponentId is Guid ass ? project?.Components.FirstOrDefault(c => c.Id == ass) : null;
+        BeforeTestComponentBox.SelectedItem = tc?.BeforeTestComponentId is Guid bt ? project?.Components.FirstOrDefault(c => c.Id == bt) : null;
+        AfterTestComponentBox.SelectedItem = tc?.AfterTestComponentId is Guid at ? project?.Components.FirstOrDefault(c => c.Id == at) : null;
+        DependencyCaseBox.SelectedItem = tc?.RequiredTestCaseId is Guid dep ? suite?.TestCases.FirstOrDefault(c => c.Id == dep) : null;
+        DataDrivenEnabledCheck.IsChecked = tc?.DataDrivenEnabled == true;
+        DataDrivenSetsList.SelectedItems.Clear();
+        if (tc is not null && project is not null)
+            foreach (var ds in project.DataSets.Where(d => tc.DataSetIds.Contains(d.Id))) DataDrivenSetsList.SelectedItems.Add(ds);
+        SaveLifecycleButton.IsEnabled = project is not null && suite is not null && tc is not null;
+        ClearLifecycleButton.IsEnabled = SaveLifecycleButton.IsEnabled;
+        _loading = false;
+    }
+
+    private async void SaveLifecycle_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loading || CurrentProject is not AutomationProject project || CurrentSuite is not AutomationSuite suite || LifecycleCase is not AutomationTestCase tc) return;
+        var dependencyId = (DependencyCaseBox.SelectedItem as AutomationTestCase)?.Id;
+        if (AutomationLifecycleService.WouldCreateDependencyCycle(suite, tc, dependencyId))
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "La dependencia seleccionada crearía un ciclo. Elige otro caso o deja la dependencia vacía." : "The selected dependency would create a cycle. Choose another test case or clear the dependency.", _settings.UiLanguage);
+            return;
+        }
+        suite.BeforeSuiteComponentId = (BeforeSuiteComponentBox.SelectedItem as ReusableAutomationComponent)?.Id;
+        suite.AfterSuiteComponentId = (AfterSuiteComponentBox.SelectedItem as ReusableAutomationComponent)?.Id;
+        tc.BeforeTestComponentId = (BeforeTestComponentBox.SelectedItem as ReusableAutomationComponent)?.Id;
+        tc.AfterTestComponentId = (AfterTestComponentBox.SelectedItem as ReusableAutomationComponent)?.Id;
+        tc.RequiredTestCaseId = dependencyId;
+        tc.DataDrivenEnabled = DataDrivenEnabledCheck.IsChecked == true;
+        tc.DataSetIds = DataDrivenSetsList.SelectedItems.Cast<AutomationDataSet>().Select(d => d.Id).Distinct().ToList();
+        if (tc.DataDrivenEnabled && tc.DataSetIds.Count == 0)
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "Selecciona al menos un conjunto de datos o desactiva Data-driven." : "Select at least one data set or disable data-driven execution.", _settings.UiLanguage);
+            return;
+        }
+        tc.UpdatedAt = DateTimeOffset.Now;
+        await PersistAsync(IsSpanish ? "Opciones avanzadas de lifecycle y datos guardadas." : "Advanced lifecycle and data settings saved.");
+        RefreshLifecycleState();
+    }
+
+    private async void ClearLifecycle_Click(object sender, RoutedEventArgs e)
+    {
+        if (CurrentSuite is not AutomationSuite suite || LifecycleCase is not AutomationTestCase tc) return;
+        suite.BeforeSuiteComponentId = null;
+        suite.AfterSuiteComponentId = null;
+        tc.BeforeTestComponentId = null;
+        tc.AfterTestComponentId = null;
+        tc.RequiredTestCaseId = null;
+        tc.DataDrivenEnabled = false;
+        tc.DataSetIds.Clear();
+        tc.UpdatedAt = DateTimeOffset.Now;
+        await PersistAsync(IsSpanish ? "Opciones avanzadas limpiadas." : "Advanced lifecycle and data settings cleared.");
+        RefreshLifecycleState();
     }
 
     private void ComponentsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1153,13 +1396,60 @@ public partial class AutomationWorkspaceWindow : Window
     private async void SaveRecovery_Click(object sender, RoutedEventArgs e)
     {
         if (RecoveryStep is not AutomationTestStep step) return;
+        if (!int.TryParse(WaitTimeoutBox.Text.Trim(), out var waitTimeout)) waitTimeout = 10000;
+        if (!int.TryParse(WaitPollBox.Text.Trim(), out var waitPoll)) waitPoll = 250;
         if (!int.TryParse(RecoveryRetriesBox.Text.Trim(), out var retries)) retries = 1;
         if (!int.TryParse(RecoveryDelayBox.Text.Trim(), out var delay)) delay = 600;
+        step.WaitCondition = WaitConditionBox.SelectedItem is AutomationWaitCondition waitCondition ? waitCondition : AutomationWaitCondition.Auto;
+        step.WaitTimeoutMs = Math.Clamp(waitTimeout, 500, 120000);
+        step.WaitPollMs = Math.Clamp(waitPoll, 50, 5000);
         step.MaxRetries = Math.Clamp(retries, 0, 5);
         step.RetryDelayMs = Math.Clamp(delay, 100, 10000);
         step.OnFailure = FailureActionBox.SelectedItem is AutomationFailureAction action ? action : AutomationFailureAction.StopTest;
+        step.HealingMode = HealingModeBox.SelectedItem is AutomationHealingMode healingMode ? healingMode : AutomationHealingMode.Conservative;
+        if (!int.TryParse(HealingMinimumScoreBox.Text.Trim(), out var healingScore)) healingScore = 78;
+        step.HealingMinimumScore = Math.Clamp(healingScore, 50, 100);
+        step.LearnHealedSelector = LearnHealedSelectorCheck.IsChecked == true;
+        step.WindowTarget = WindowTargetBox.SelectedItem is AutomationWindowTarget windowTarget ? windowTarget : AutomationWindowTarget.Current;
+        step.WindowMatch = WindowMatchBox.Text.Trim();
+        step.FrameTarget = FrameTargetBox.SelectedItem is AutomationFrameTarget frameTarget ? frameTarget : AutomationFrameTarget.DefaultContent;
+        step.FrameValue = FrameValueBox.Text.Trim();
+        step.ShadowDomMode = ShadowDomCheck.IsChecked == true ? AutomationShadowDomMode.OpenShadowPath : AutomationShadowDomMode.None;
+        step.ShadowCssPath = ShadowCssPathBox.Text.Trim();
+        if (step.ShadowDomMode == AutomationShadowDomMode.OpenShadowPath && string.IsNullOrWhiteSpace(step.ShadowCssPath))
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "Ingresa una ruta CSS de Shadow DOM o desactiva esta opción avanzada." : "Enter a Shadow DOM CSS path or disable this advanced option.", _settings.UiLanguage);
+            return;
+        }
+        if (InteractionActionBox.SelectedItem is string interactionAction && !string.IsNullOrWhiteSpace(interactionAction)) step.Action = interactionAction;
+        step.ApiMethod = ApiMethodBox.SelectedItem as string ?? "GET";
+        step.ApiUrl = ApiUrlBox.Text.Trim();
+        step.ApiBody = ApiBodyBox.Text;
+        step.ApiContentType = string.IsNullOrWhiteSpace(ApiContentTypeBox.Text) ? "application/json" : ApiContentTypeBox.Text.Trim();
+        if (!int.TryParse(ApiExpectedStatusBox.Text.Trim(), out var expectedApiStatus)) expectedApiStatus = 200;
+        step.ApiExpectedStatus = Math.Clamp(expectedApiStatus, 100, 599);
+        step.ApiHeadersExpression = ApiHeadersBox.Text;
+        step.ConditionType = ConditionTypeBox.SelectedItem is AutomationStepConditionType conditionType ? conditionType : AutomationStepConditionType.Always;
+        step.ConditionExpression = ConditionExpressionBox.Text.Trim();
+        step.ConditionExpected = ConditionExpectedBox.Text.Trim();
+        if (!int.TryParse(RepeatCountBox.Text.Trim(), out var repeatCount)) repeatCount = 1;
+        if (!int.TryParse(RepeatDelayBox.Text.Trim(), out var repeatDelay)) repeatDelay = 0;
+        step.RepeatCount = Math.Clamp(repeatCount, 1, 20);
+        step.RepeatDelayMs = Math.Clamp(repeatDelay, 0, 60000);
+        if (step.ConditionType != AutomationStepConditionType.Always && string.IsNullOrWhiteSpace(step.ConditionExpression))
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "La ejecución condicional requiere una expresión, selector o variable." : "Conditional execution requires an expression, selector or variable.", _settings.UiLanguage);
+            return;
+        }
+        if (step.Action.Equals("ApiRequest", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(step.ApiUrl))
+        {
+            AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "ApiRequest requiere una URL o endpoint relativo en API helper." : "ApiRequest requires a URL or relative endpoint in API helper.", _settings.UiLanguage);
+            return;
+        }
+        step.AllowJavaScriptClickFallback = JavaScriptClickFallbackCheck.IsChecked == true;
+        step.CloseCurrentWindowAfterStep = CloseWindowAfterStepCheck.IsChecked == true;
         RecoveryStepsGrid.Items.Refresh();
-        await PersistAsync(IsSpanish ? "Política de recuperación guardada." : "Recovery policy saved.");
+        await PersistAsync(IsSpanish ? "Política de recuperación e interacción guardada." : "Recovery and interaction policy saved.");
     }
 
     private static List<AutomationTestStep> CloneSteps(IEnumerable<AutomationTestStep> steps)
@@ -1363,6 +1653,42 @@ public partial class AutomationWorkspaceWindow : Window
         catch (Exception ex) { AppDialogWindow.ShowInfo(this, IsSpanish ? "Error de correo" : "Email error", ex.Message, _settings.UiLanguage); }
     }
 
+    private void BrowserPreflight_Click(object sender, RoutedEventArgs e)
+    {
+        var browsers = new List<string>();
+        if (QueueChromeCheck.IsChecked == true) browsers.Add("Chrome");
+        if (QueueEdgeCheck.IsChecked == true) browsers.Add("Edge");
+        if (QueueFirefoxCheck.IsChecked == true) browsers.Add("Firefox");
+        if (browsers.Count == 0)
+        {
+            BrowserPreflightStateText.Text = IsSpanish ? "Selecciona al menos un navegador." : "Select at least one browser.";
+            MessageBox.Show(BrowserPreflightStateText.Text, IsSpanish ? "Diagnóstico de navegadores" : "Browser preflight", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var results = AutomationBrowserCapabilityService.CheckMany(browsers);
+        var detected = results.Count(x => x.Detected);
+        var missing = results.Count - detected;
+        BrowserPreflightStateText.Text = IsSpanish
+            ? $"Diagnóstico: {detected}/{results.Count} detectados · {missing} no detectado(s). No bloquea la ejecución."
+            : $"Preflight: {detected}/{results.Count} detected · {missing} not detected. Execution is not blocked.";
+
+        var lines = results.Select(x => x.Detected
+            ? $"✓ {x.Browser}{(string.IsNullOrWhiteSpace(x.Version) ? "" : $" v{x.Version}")}: {x.ExecutablePath}"
+            : $"⚠ {x.Browser}: {(IsSpanish ? "no detectado en rutas estándar" : "not detected in standard locations")}");
+        var note = IsSpanish
+            ? "\n\nEste diagnóstico es informativo. Las instalaciones portables o personalizadas todavía pueden funcionar mediante Selenium Manager."
+            : "\n\nThis diagnostic is informational. Portable or custom installations may still work through Selenium Manager.";
+        MessageBox.Show(string.Join("\n", lines) + note,
+            IsSpanish ? "Diagnóstico de navegadores" : "Browser preflight",
+            MessageBoxButton.OK,
+            missing == 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+    }
+
+
+    private static string FormatBrowserVersion(BrowserCapabilityStatus capability)
+        => string.IsNullOrWhiteSpace(capability.Version) ? capability.Browser : $"{capability.Browser} v{capability.Version}";
+
     private async void QueueMatrix_Click(object sender, RoutedEventArgs e)
     {
         if (CurrentProject is not AutomationProject project || CurrentSuite is not AutomationSuite suite)
@@ -1372,6 +1698,7 @@ public partial class AutomationWorkspaceWindow : Window
         var browsers = new List<string>();
         if (QueueChromeCheck.IsChecked == true) browsers.Add("Chrome");
         if (QueueEdgeCheck.IsChecked == true) browsers.Add("Edge");
+        if (QueueFirefoxCheck.IsChecked == true) browsers.Add("Firefox");
         if (browsers.Count == 0)
         {
             AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "Selecciona al menos un navegador." : "Select at least one browser.", _settings.UiLanguage); return;
@@ -1384,7 +1711,19 @@ public partial class AutomationWorkspaceWindow : Window
         }
         var batch = Guid.NewGuid();
         foreach (var browser in browsers)
-            _queueItems.Insert(0, new AutomationQueueItem { BatchId = batch, ProjectId = project.Id, SuiteId = suite.Id, EnvironmentId = env?.Id, ProjectName = project.Name, SuiteName = suite.Name, EnvironmentName = env?.Name ?? "Default", Browser = browser, Status = AutomationQueueStatus.Queued, Message = IsSpanish ? "Esperando ejecución." : "Waiting for execution." });
+        {
+            var capability = AutomationBrowserCapabilityService.Check(browser);
+            _queueItems.Insert(0, new AutomationQueueItem
+            {
+                BatchId = batch, ProjectId = project.Id, SuiteId = suite.Id, EnvironmentId = env?.Id,
+                ProjectName = project.Name, SuiteName = suite.Name, EnvironmentName = env?.Name ?? "Default", Browser = browser,
+                BrowserVersion = capability.Version, BrowserExecutablePath = capability.ExecutablePath,
+                Status = AutomationQueueStatus.Queued,
+                Message = capability.Detected
+                    ? (IsSpanish ? $"Esperando ejecución · navegador {FormatBrowserVersion(capability)}." : $"Waiting for execution · browser {FormatBrowserVersion(capability)}.")
+                    : (IsSpanish ? "Esperando ejecución · versión se resolverá al iniciar." : "Waiting for execution · version will be resolved at start.")
+            });
+        }
         await _queueStore.SaveAsync(_queueItems);
         RunQueueGrid.Items.Refresh();
         QueueStateText.Text = IsSpanish ? $"Matriz {batch.ToString("N")[..8].ToUpperInvariant()} encolada · {browsers.Count} navegador(es)." : $"Matrix {batch.ToString("N")[..8].ToUpperInvariant()} queued · {browsers.Count} browser(s).";
@@ -1400,6 +1739,7 @@ public partial class AutomationWorkspaceWindow : Window
         }
         _queueSettings.MaxConcurrency = Math.Clamp(ConcurrencyBox.SelectedIndex + 1, 1, 4);
         _queueSettings.StopBatchOnFailure = StopBatchOnFailureCheck.IsChecked == true;
+        _queueSettings.BrowserHeadless = QueueBrowserHeadlessCheck.IsChecked == true;
         await _queueStore.SaveSettingsAsync(_queueSettings);
         _queueCts = new CancellationTokenSource();
         StartQueueButton.IsEnabled = false; CancelQueueButton.IsEnabled = true; QueueMatrixButton.IsEnabled = false;

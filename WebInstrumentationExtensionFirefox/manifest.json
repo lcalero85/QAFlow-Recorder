@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "QAFlow Web Instrumentation for Firefox",
+  "version": "1.0.0",
+  "description": "Captures DOM metadata locally for QAFlow Hybrid Testing in Firefox. Typed values are never collected.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:47831/*",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_title": "QAFlow Web Instrumentation"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "qaflow-instrumentation@qaflow.local",
+      "strict_min_version": "128.0"
+    }
+  }
+}

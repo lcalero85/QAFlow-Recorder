@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Privacy zones — QAFlow" Width="1100" Height="760" MinWidth="900" MinHeight="650"
-        WindowStartupLocation="CenterOwner" Background="#090D14" Foreground="#F3F7FC"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource Bg0Brush}" Foreground="{DynamicResource TextBrush}"
         Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid Margin="16">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -10,29 +10,29 @@
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel>
                 <TextBlock x:Name="TitleText" Text="Privacy zones" FontSize="22" FontWeight="SemiBold"/>
-                <TextBlock x:Name="SubtitleText" Text="Draw areas that QAFlow must always hide before saving evidence." Foreground="#8FA3B8" FontSize="11"/>
+                <TextBlock x:Name="SubtitleText" Text="Draw areas that QAFlow must always hide before saving evidence." Foreground="{DynamicResource MutedBrush}" FontSize="11"/>
             </StackPanel>
             <Button Grid.Column="1" x:Name="RefreshButton" Content="Capture active window" Click="Refresh_Click" Padding="14,8"/>
         </Grid>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Border Background="#101925" BorderBrush="#26364A" BorderThickness="1" CornerRadius="10" Padding="12">
+            <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12">
                 <StackPanel>
                     <TextBlock x:Name="NameLabel" Text="Zone name" FontWeight="SemiBold"/><TextBox x:Name="ZoneNameBox" Text="Private area" Margin="0,5,0,10"/>
                     <TextBlock x:Name="ScopeLabel" Text="Window title contains (optional)" FontWeight="SemiBold"/><TextBox x:Name="ScopeBox" Margin="0,5,0,4"/>
-                    <TextBlock x:Name="ScopeHelp" Text="Leave empty to apply this zone to every captured window." Foreground="#71869E" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                    <TextBlock x:Name="InstructionText" Text="Drag on the preview to create a privacy zone." Foreground="#8FA3B8" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="ScopeHelp" Text="Leave empty to apply this zone to every captured window." Foreground="{DynamicResource Muted3Brush}" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="InstructionText" Text="Drag on the preview to create a privacy zone." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                     <Button x:Name="AddZoneButton" Content="Add drawn zone" Style="{StaticResource PrimaryButton}" Click="AddZone_Click"/>
                     <TextBlock x:Name="SavedLabel" Text="Saved zones" FontWeight="SemiBold" Margin="0,16,0,6"/>
                     <ListBox x:Name="ZonesList" Height="280" SelectionChanged="ZonesList_SelectionChanged">
-                        <ListBox.ItemTemplate><DataTemplate><StackPanel Margin="4"><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><TextBlock Text="{Binding ScopeDisplay}" Foreground="#71869E" FontSize="9.5" TextTrimming="CharacterEllipsis"/></StackPanel></DataTemplate></ListBox.ItemTemplate>
+                        <ListBox.ItemTemplate><DataTemplate><StackPanel Margin="4"><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><TextBlock Text="{Binding ScopeDisplay}" Foreground="{DynamicResource Muted3Brush}" FontSize="9.5" TextTrimming="CharacterEllipsis"/></StackPanel></DataTemplate></ListBox.ItemTemplate>
                     </ListBox>
                     <Button x:Name="DeleteZoneButton" Content="Delete selected" Style="{StaticResource DangerButton}" Margin="0,8,0,0" Click="DeleteZone_Click"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="2" Background="#0F1723" BorderBrush="#26364A" BorderThickness="1" CornerRadius="10" Padding="8">
+            <Border Grid.Column="2" Background="{DynamicResource SurfaceExact3Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="8">
                 <Viewbox Stretch="Uniform">
-                    <Grid x:Name="CaptureSurface" Width="1000" Height="620" Background="#20262F">
+                    <Grid x:Name="CaptureSurface" Width="1000" Height="620" Background="{DynamicResource SurfaceExact5Brush}">
                         <Image x:Name="CaptureImage" Width="1000" Height="620" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
                         <Canvas x:Name="Overlay" Width="1000" Height="620" Background="Transparent"
                                 MouseLeftButtonDown="Overlay_MouseLeftButtonDown" MouseMove="Overlay_MouseMove" MouseLeftButtonUp="Overlay_MouseLeftButtonUp"/>
@@ -42,7 +42,7 @@
         </Grid>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <TextBlock x:Name="FooterHint" Text="Zones are applied locally before evidence is written to disk." Foreground="#71869E" VerticalAlignment="Center"/>
+            <TextBlock x:Name="FooterHint" Text="Zones are applied locally before evidence is written to disk." Foreground="{DynamicResource Muted3Brush}" VerticalAlignment="Center"/>
             <Button Grid.Column="1" x:Name="CancelButton" Content="Cancel" Width="130" Click="Cancel_Click"/>
             <Button Grid.Column="3" x:Name="SaveButton" Content="Save zones" Width="150" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
         </Grid>

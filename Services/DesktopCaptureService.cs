@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -32,6 +33,17 @@ public static class DesktopCaptureService
         var sb=new System.Text.StringBuilder(512);
         _=GetWindowText(hwnd,sb,sb.Capacity);
         return sb.ToString().Trim();
+    }
+
+    public static string GetWindowProcessName(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero) return "";
+        try
+        {
+            _ = GetWindowThreadProcessId(hwnd, out var processId);
+            return processId == 0 ? "" : Process.GetProcessById((int)processId).ProcessName;
+        }
+        catch { return ""; }
     }
 
     public static Point? GetPointRelativeToWindow(IntPtr hwnd, double screenX, double screenY)

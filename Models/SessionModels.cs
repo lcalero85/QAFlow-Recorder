@@ -10,6 +10,59 @@ public enum Severity { None, Low, Medium, High, Critical }
 public enum ScreenshotKind { Navigation, FlowAction, Annotation, CriticalError, BeforeSubmit, Dialog, Periodic, Final, Manual, BugOriginal, BugMarked }
 public enum PrivacyMaskMode { Automatic, Manual, Off }
 public enum RiskLevel { Low, Medium, High, Critical }
+public enum ChecklistStatus { NotTested, Passed, Failed, Blocked }
+
+
+public sealed class SessionBookmark
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
+    public string Category { get; set; } = "Important";
+    public string Note { get; set; } = "";
+    public string ApplicationName { get; set; } = "";
+    public string WindowTitle { get; set; } = "";
+    public string ScreenshotPath { get; set; } = "";
+    [JsonIgnore] public string DisplayText => string.IsNullOrWhiteSpace(Note) ? Category : $"{Category} · {Note}";
+}
+
+public sealed class ManualChecklistItem
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public int Order { get; set; }
+    public string Text { get; set; } = "";
+    public ChecklistStatus Status { get; set; } = ChecklistStatus.NotTested;
+    public string Note { get; set; } = "";
+}
+
+public sealed class EnvironmentSnapshot
+{
+    public DateTimeOffset CapturedAt { get; set; } = DateTimeOffset.Now;
+    public string OperatingSystem { get; set; } = Environment.OSVersion.VersionString;
+    public string Resolution { get; set; } = "";
+    public string TimeZone { get; set; } = TimeZoneInfo.Local.DisplayName;
+    public string MachineName { get; set; } = Environment.MachineName;
+    public string ActiveApplication { get; set; } = "";
+    public string ActiveWindow { get; set; } = "";
+    public string BuildVersion { get; set; } = "";
+}
+
+public sealed class SessionTemplateDefinition
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = "";
+    public bool BuiltIn { get; set; }
+    public string TestType { get; set; } = "Functional Normal";
+    public string DefaultTags { get; set; } = "";
+    public string CharterObjective { get; set; } = "";
+    public string CharterScope { get; set; } = "";
+    public string CharterRisks { get; set; } = "";
+    public string ChecklistText { get; set; } = "";
+    public bool PeriodicCapture { get; set; }
+    public int PeriodicSeconds { get; set; } = 30;
+    public PrivacyMaskMode PrivacyMasking { get; set; } = PrivacyMaskMode.Automatic;
+    [JsonIgnore] public string DisplayName => BuiltIn ? $"{Name} · built-in" : Name;
+    public override string ToString() => DisplayName;
+}
 
 public sealed class QaEvent
 {
@@ -140,6 +193,10 @@ public sealed class TestSession
     public int CharterPlannedMinutes { get; set; }
     public string Os { get; set; } = Environment.OSVersion.VersionString;
     public string Resolution { get; set; } = "";
+    public string BuildVersion { get; set; } = "";
+    public EnvironmentSnapshot EnvironmentSnapshot { get; set; } = new();
+    public List<SessionBookmark> Bookmarks { get; set; } = [];
+    public List<ManualChecklistItem> ManualChecklist { get; set; } = [];
     public List<QaEvent> Events { get; set; } = [];
     public List<Annotation> Annotations { get; set; } = [];
     public List<EvidenceShot> Screenshots { get; set; } = [];
@@ -174,9 +231,10 @@ public sealed class AppSettings
     public bool PeriodicScreenshot { get; set; }
     public int PeriodicSeconds { get; set; } = 30;
     public bool IncludeTechnicalAppendix { get; set; } = true;
-    public int ImageQuality { get; set; } = 85;
+    public int ImageQuality { get; set; } = 100;
     public string DocumentLanguage { get; set; } = "English";
     public string UiLanguage { get; set; } = "English";
+    public string UiTheme { get; set; } = "Dark";
     public string FileNameTemplate { get; set; } = "qa-report-{sesion}-{fecha}.pdf";
     public string CompanyLogoPath { get; set; } = "";
     public string ExportFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "QAFlow Recorder");

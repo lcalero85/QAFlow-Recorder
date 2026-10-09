@@ -14,7 +14,8 @@ public static class AutomationSuiteHtmlReportService
         {
             var cls = item.Status == AutomationRunStatus.Passed ? "pass" : item.Status == AutomationRunStatus.Failed ? "fail" : "review";
             var report = string.IsNullOrWhiteSpace(item.HtmlReportPath) ? "" : $"<a href='file:///{H(item.HtmlReportPath.Replace('\\','/'))}'>Open case report</a>";
-            rows.Append($"<tr><td>{H(item.TestCaseKey)}</td><td>{H(item.TestCaseName)}</td><td class='{cls}'>{H(item.Status.ToString())}</td><td>{item.PassRate}%</td><td>{H(item.Duration)}</td><td>{report}</td></tr>");
+            var stage = string.IsNullOrWhiteSpace(item.LifecycleStage) ? "Test" : item.LifecycleStage;
+            rows.Append($"<tr><td>{H(stage)}</td><td>{H(item.TestCaseKey)}</td><td>{H(item.TestCaseName)}</td><td>{H(item.DataSetName)}</td><td class='{cls}'>{H(item.Status.ToString())}</td><td>{item.PassRate}%</td><td>{H(item.Duration)}</td><td>{report}</td></tr>");
         }
         var path = Path.Combine(run.RunFolder, "QAFlow-Suite-Execution-Report.html");
         var html = """
@@ -23,7 +24,7 @@ public static class AutomationSuiteHtmlReportService
 <div class="hero"><div class="brand">QAFLOW RECORDER · WEB AUTOMATION</div><h1>Suite Execution Report</h1><p>__PROJECT__ / __SUITE__</p><div class="scope">Environment: __ENVIRONMENT__ · Web scope: __BASEURL__ · Browser: __BROWSER__ · Test data: __DATASET__</div></div>
 <div class="grid"><div class="metric"><span>Status</span><strong>__STATUS__</strong></div><div class="metric"><span>Pass rate</span><strong>__PASSRATE__%</strong></div><div class="metric"><span>Passed</span><strong>__PASSED__</strong></div><div class="metric"><span>Failed</span><strong>__FAILED__</strong></div><div class="metric"><span>Review</span><strong>__REVIEW__</strong></div></div>
 <div class="card"><b>Run</b><p class="muted">Started __STARTED__ · Duration __DURATION__ · __COUNT__ test case(s)</p></div>
-<div class="card"><h2>Test case results</h2><table><thead><tr><th>ID</th><th>Test case</th><th>Status</th><th>Pass</th><th>Duration</th><th>Report</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+<div class="card"><h2>Test case results</h2><table><thead><tr><th>Stage</th><th>ID</th><th>Test case</th><th>Data</th><th>Status</th><th>Pass</th><th>Duration</th><th>Report</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 </main></body></html>
 """;
         html = html.Replace("__PROJECT__", H(run.ProjectName)).Replace("__SUITE__", H(run.SuiteName)).Replace("__ENVIRONMENT__", H(string.IsNullOrWhiteSpace(run.EnvironmentName) ? "Default" : run.EnvironmentName)).Replace("__BASEURL__", H(run.BaseUrl)).Replace("__BROWSER__", H(run.Browser)).Replace("__DATASET__", H(string.IsNullOrWhiteSpace(run.DataSetName) ? "Case defaults" : run.DataSetName)).Replace("__STATUS__", H(run.Status.ToString())).Replace("__PASSRATE__", run.PassRate.ToString()).Replace("__PASSED__", run.PassedCases.ToString()).Replace("__FAILED__", run.FailedCases.ToString()).Replace("__REVIEW__", run.ReviewCases.ToString()).Replace("__STARTED__", H(run.StartedDisplay)).Replace("__DURATION__", H(run.DurationDisplay)).Replace("__COUNT__", run.Cases.Count.ToString()).Replace("__ROWS__", rows.ToString());

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using QAFlowRecorder.Models;
@@ -22,6 +23,9 @@ public sealed class WebDomObservation
     public string CssSelector { get; set; } = "";
     public string XPath { get; set; } = "";
     public string InputType { get; set; } = "";
+    public string BrowserName { get; set; } = "";
+    public string FrameUrl { get; set; } = "";
+    public bool IsTopFrame { get; set; } = true;
 }
 
 /// <summary>
@@ -35,8 +39,10 @@ public sealed class WebInstrumentationBridge : IDisposable
     private readonly CancellationTokenSource _cts = new();
     private Task? _loop;
     private AppSettings _settings;
+    private readonly string _sessionToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     public event Action<WebDomObservation>? ObservationReceived;
     public static DateTimeOffset LastClientSeen { get; private set; }
+    public static string LastClientBrowser { get; private set; } = "";
     public static bool IsRunning { get; private set; }
 
     public WebInstrumentationBridge(AppSettings settings) => _settings = settings;
@@ -52,9 +58,10 @@ public sealed class WebInstrumentationBridge : IDisposable
             IsRunning = true;
             _loop = Task.Run(AcceptLoopAsync);
         }
-        catch
+        catch (Exception ex)
         {
             IsRunning = false;
+            TechnicalLogService.Error(nameof(WebInstrumentationBridge), "Start", ex);
         }
     }
 
@@ -69,7 +76,7 @@ public sealed class WebInstrumentationBridge : IDisposable
                 _ = Task.Run(() => HandleClientAsync(client, _cts.Token));
             }
             catch (OperationCanceledException) { break; }
-            catch { client?.Dispose(); }
+            catch (Exception ex) { client?.Dispose(); TechnicalLogService.Warn(nameof(WebInstrumentationBridge), "AcceptLoop", ex.Message, ex); }
         }
     }
 
@@ -87,39 +94,48 @@ public sealed class WebInstrumentationBridge : IDisposable
                 var method = parts.ElementAtOrDefault(0) ?? "GET";
                 var path = parts.ElementAtOrDefault(1) ?? "/";
                 var contentLength = 0;
+                var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 string? line;
                 while (!string.IsNullOrEmpty(line = await reader.ReadLineAsync(token)))
                 {
                     var sep = line.IndexOf(':');
                     if (sep <= 0) continue;
-                    if (line[..sep].Equals("Content-Length", StringComparison.OrdinalIgnoreCase))
-                        int.TryParse(line[(sep + 1)..].Trim(), out contentLength);
+                    var name = line[..sep].Trim();
+                    var value = line[(sep + 1)..].Trim();
+                    headers[name] = value;
+                    if (name.Equals("Content-Length", StringComparison.OrdinalIgnoreCase)) int.TryParse(value, out contentLength);
                 }
+                headers.TryGetValue("Origin", out var origin);
+                var allowedOrigin = IsAllowedOrigin(origin) ? origin : null;
 
                 if (method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
                 {
-                    await WriteResponseAsync(stream, 204, "text/plain", "", token);
+                    if (allowedOrigin is null) { await WriteResponseAsync(stream, 403, "text/plain", "", token, null); return; }
+                    await WriteResponseAsync(stream, 204, "text/plain", "", token, allowedOrigin);
                     return;
                 }
 
                 if (method.Equals("GET", StringComparison.OrdinalIgnoreCase) && path.StartsWith("/status", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (allowedOrigin is null) { await WriteResponseAsync(stream, 403, "application/json", "{\"enabled\":false}", token, null); return; }
                     LastClientSeen = DateTimeOffset.Now;
                     var payload = JsonSerializer.Serialize(new
                     {
                         enabled = _settings.ProductMode == ProductMode.HybridTesting,
                         baseUrl = _settings.WebAutomationBaseUrl,
-                        allowedDomains = _settings.WebAutomationAllowedDomains
+                        allowedDomains = _settings.WebAutomationAllowedDomains,
+                        sessionToken = _sessionToken
                     });
-                    await WriteResponseAsync(stream, 200, "application/json", payload, token);
+                    await WriteResponseAsync(stream, 200, "application/json", payload, token, allowedOrigin);
                     return;
                 }
 
                 if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && path.StartsWith("/event", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_settings.ProductMode != ProductMode.HybridTesting)
+                    headers.TryGetValue("X-QAFlow-Token", out var clientToken);
+                    if (_settings.ProductMode != ProductMode.HybridTesting || allowedOrigin is null || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(clientToken ?? ""), Encoding.UTF8.GetBytes(_sessionToken)))
                     {
-                        await WriteResponseAsync(stream, 403, "application/json", "{\"accepted\":false}", token);
+                        await WriteResponseAsync(stream, 403, "application/json", "{\"accepted\":false}", token, allowedOrigin);
                         return;
                     }
 
@@ -135,16 +151,23 @@ public sealed class WebInstrumentationBridge : IDisposable
                     if (observation is not null && IsAllowedUrl(observation.Url))
                     {
                         LastClientSeen = DateTimeOffset.Now;
+                        if (!string.IsNullOrWhiteSpace(observation.BrowserName)) LastClientBrowser = observation.BrowserName.Trim();
                         ObservationReceived?.Invoke(observation);
                     }
-                    await WriteResponseAsync(stream, 200, "application/json", "{\"accepted\":true}", token);
+                    await WriteResponseAsync(stream, 200, "application/json", "{\"accepted\":true}", token, allowedOrigin);
                     return;
                 }
 
-                await WriteResponseAsync(stream, 404, "application/json", "{\"error\":\"not-found\"}", token);
+                await WriteResponseAsync(stream, 404, "application/json", "{\"error\":\"not-found\"}", token, allowedOrigin);
             }
-            catch { }
+            catch (Exception ex) { TechnicalLogService.Warn(nameof(WebInstrumentationBridge), "HandleClient", ex.Message, ex); }
         }
+    }
+
+    private bool IsAllowedOrigin(string? origin)
+    {
+        if (string.IsNullOrWhiteSpace(origin) || !Uri.TryCreate(origin, UriKind.Absolute, out var uri)) return false;
+        return IsAllowedUrl(uri.GetLeftPart(UriPartial.Authority));
     }
 
     private bool IsAllowedUrl(string candidate)
@@ -164,11 +187,12 @@ public sealed class WebInstrumentationBridge : IDisposable
         return value.Trim().TrimStart('*', '.').TrimEnd('/');
     }
 
-    private static async Task WriteResponseAsync(NetworkStream stream, int code, string contentType, string body, CancellationToken token)
+    private static async Task WriteResponseAsync(NetworkStream stream, int code, string contentType, string body, CancellationToken token, string? allowedOrigin)
     {
         var bytes = Encoding.UTF8.GetBytes(body);
         var status = code switch { 200 => "OK", 204 => "No Content", 403 => "Forbidden", 404 => "Not Found", _ => "OK" };
-        var header = $"HTTP/1.1 {code} {status}\r\nContent-Type: {contentType}; charset=utf-8\r\nContent-Length: {bytes.Length}\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Headers: Content-Type\r\nAccess-Control-Allow-Methods: GET,POST,OPTIONS\r\nConnection: close\r\n\r\n";
+        var cors = string.IsNullOrWhiteSpace(allowedOrigin) ? "" : $"Access-Control-Allow-Origin: {allowedOrigin}\r\nVary: Origin\r\n";
+        var header = $"HTTP/1.1 {code} {status}\r\nContent-Type: {contentType}; charset=utf-8\r\nContent-Length: {bytes.Length}\r\n{cors}Access-Control-Allow-Headers: Content-Type, X-QAFlow-Token\r\nAccess-Control-Allow-Methods: GET,POST,OPTIONS\r\nConnection: close\r\n\r\n";
         await stream.WriteAsync(Encoding.ASCII.GetBytes(header), token);
         if (bytes.Length > 0) await stream.WriteAsync(bytes, token);
         await stream.FlushAsync(token);

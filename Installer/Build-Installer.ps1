@@ -4,6 +4,7 @@ $Project = (Resolve-Path (Join-Path $PSScriptRoot "..\QAFlowRecorder.csproj")).P
 $Deps = Join-Path $PSScriptRoot "Dependencies"
 $Output = Join-Path $PSScriptRoot "Output"
 $AppIcon = (Resolve-Path (Join-Path $PSScriptRoot "..\Assets\qaflow.ico")).Path
+$ProjectRoot = Split-Path $Project -Parent
 
 # Use a short staging path. This avoids legacy MAX_PATH issues in Inno Setup
 # when the project itself lives inside a deeply nested Downloads folder.
@@ -15,17 +16,43 @@ New-Item -ItemType Directory -Force -Path $PublishDir | Out-Null
 New-Item -ItemType Directory -Force -Path $Deps | Out-Null
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 
+# Keep the distributable browser-extension ZIP synchronized with its source folder.
+$BrowserExtensionDir = Join-Path $ProjectRoot "BrowserExtension"
+$BrowserExtensionZip = Join-Path $BrowserExtensionDir "QAFlow_Browser_Extension.zip"
+if (Test-Path $BrowserExtensionDir) {
+  $ExtensionStage = Join-Path $BuildRoot "browser-extension"
+  New-Item -ItemType Directory -Force -Path $ExtensionStage | Out-Null
+  Get-ChildItem $BrowserExtensionDir -Force | Where-Object { $_.Name -ne "QAFlow_Browser_Extension.zip" } | ForEach-Object {
+    Copy-Item $_.FullName -Destination $ExtensionStage -Recurse -Force
+  }
+  if (Test-Path $BrowserExtensionZip) { Remove-Item $BrowserExtensionZip -Force }
+  Compress-Archive -Path (Join-Path $ExtensionStage "*") -DestinationPath $BrowserExtensionZip -CompressionLevel Optimal -Force
+}
+
 Write-Host "Publishing QAFlow Recorder 1.0 as self-contained win-x64..." -ForegroundColor Cyan
 Write-Host "Staging publish output at: $PublishDir" -ForegroundColor DarkGray
 
-dotnet restore $Project
+$ShortBin = Join-Path $BuildRoot "bin"
+$ShortObj = Join-Path $BuildRoot "obj"
+New-Item -ItemType Directory -Force -Path $ShortBin | Out-Null
+New-Item -ItemType Directory -Force -Path $ShortObj | Out-Null
+
+# Force restore, intermediate files and build output into short TEMP paths.
+# This avoids Windows/MSBuild MAX_PATH failures even when the downloaded
+# project itself is inside a long Downloads folder name.
+dotnet restore $Project `
+  -r win-x64 `
+  -p:BaseOutputPath="$ShortBin\" `
+  -p:BaseIntermediateOutputPath="$ShortObj\"
 if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed." }
 
-dotnet publish $Project -c Release -r win-x64 --self-contained true `
+dotnet publish $Project -c Release -r win-x64 --self-contained true --no-restore `
   -p:PublishSingleFile=true `
   -p:IncludeNativeLibrariesForSelfExtract=true `
   -p:DebugType=None `
   -p:DebugSymbols=false `
+  -p:BaseOutputPath="$ShortBin\" `
+  -p:BaseIntermediateOutputPath="$ShortObj\" `
   -o $PublishDir
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed." }
 

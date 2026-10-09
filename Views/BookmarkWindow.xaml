@@ -1,0 +1,17 @@
+<Window x:Class="QAFlowRecorder.Views.BookmarkWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add bookmark" Width="456" Height="390" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Icon="pack://application:,,,/Assets/qaflow.ico">
+    <Grid Margin="18">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="40" Height="40"/>
+            <StackPanel Margin="12,0,0,0"><TextBlock x:Name="TitleText" Text="Session bookmark" FontSize="20" FontWeight="SemiBold"/><TextBlock x:Name="SubtitleText" Text="Mark an important moment without interrupting the test." Foreground="{DynamicResource MutedBrush}" FontSize="10.5"/></StackPanel>
+        </StackPanel>
+        <TextBlock Grid.Row="1" x:Name="CategoryLabel" Text="Type" FontWeight="SemiBold" Margin="0,18,0,5"/>
+        <ComboBox Grid.Row="2" x:Name="CategoryBox" Height="38"><ComboBoxItem Content="Important" IsSelected="True"/><ComboBoxItem Content="Review later"/><ComboBoxItem Content="Unexpected behavior"/><ComboBoxItem Content="Critical point"/></ComboBox>
+        <StackPanel Grid.Row="3" Margin="0,14,0,0"><TextBlock x:Name="NoteLabel" Text="Short note (optional)" FontWeight="SemiBold"/><TextBox x:Name="NoteBox" Height="92" Margin="0,5,0,0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></StackPanel>
+        <Grid Grid.Row="4" Margin="0,18,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions><Button x:Name="CancelButton" Content="Cancel" Click="Cancel_Click"/><Button Grid.Column="2" x:Name="SaveButton" Content="★ Save bookmark" Style="{StaticResource PrimaryButton}" Click="Save_Click"/></Grid>
+    </Grid>
+</Window>

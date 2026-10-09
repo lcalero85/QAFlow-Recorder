@@ -1,6 +1,6 @@
 (() => {
   const bridge = 'http://127.0.0.1:47831';
-  let status = { enabled: false, baseUrl: '', allowedDomains: '' };
+  let status = { enabled: false, baseUrl: '', allowedDomains: '', sessionToken: '' };
   let lastStatus = 0;
 
   function hostOf(value) {
@@ -106,7 +106,10 @@
       dataTestId: testId,
       cssSelector: cssPath(el),
       xpath: xpath(el),
-      inputType: el?.getAttribute?.('type') || ''
+      inputType: el?.getAttribute?.('type') || '',
+      browserName: /Edg\//.test(navigator.userAgent) ? 'Edge' : /Chrome\//.test(navigator.userAgent) ? 'Chrome' : /Firefox\//.test(navigator.userAgent) ? 'Firefox' : 'Browser',
+      frameUrl: location.href,
+      isTopFrame: window.top === window
     };
   }
 
@@ -116,7 +119,7 @@
     try {
       await fetch(bridge + '/event', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-QAFlow-Token': status.sessionToken || '' },
         body: JSON.stringify(payload(type, el)),
         keepalive: true
       });

@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Review session — QAFlow" Width="980" Height="720" MinWidth="860" MinHeight="620"
-        WindowStartupLocation="CenterOwner" Background="#090D14" Foreground="#F3F7FC" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource Bg0Brush}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False"
         Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid Margin="18">
         <Grid.RowDefinitions>
@@ -18,17 +18,17 @@
             <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="44" Height="44" Margin="0,0,12,0"/>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock x:Name="TitleText" Text="Review session" FontSize="22" FontWeight="SemiBold"/>
-                <TextBlock x:Name="SubtitleText" Text="Review the captured steps before creating the final QA documentation." Foreground="#91A7BF" Margin="0,3,0,0"/>
+                <TextBlock x:Name="SubtitleText" Text="Review the captured steps before creating the final QA documentation." Foreground="{DynamicResource TextSubtleBrush}" Margin="0,3,0,0"/>
             </StackPanel>
         </Grid>
 
-        <Border Grid.Row="1" Margin="0,14,0,12" Background="#101A28" BorderBrush="#26384E" BorderThickness="1" CornerRadius="10" Padding="13">
+        <Border Grid.Row="1" Margin="0,14,0,12" Background="{DynamicResource SurfaceDeepBrush}" BorderBrush="{DynamicResource SurfaceExact7Brush}" BorderThickness="1" CornerRadius="10" Padding="13">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                <StackPanel><TextBlock x:Name="CapturedLabel" Text="CAPTURED" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="CapturedValue" Text="0" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
-                <StackPanel Grid.Column="1"><TextBlock x:Name="IncludedLabel" Text="IN REPORT" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="IncludedValue" Text="0" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
-                <StackPanel Grid.Column="2"><TextBlock x:Name="CheckpointLabel" Text="CHECKPOINTS" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="CheckpointValue" Text="0" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
-                <StackPanel Grid.Column="3"><TextBlock x:Name="QualityLabel" Text="REPORT READY" Foreground="#7F97B0" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="QualityValue" Text="100%" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel><TextBlock x:Name="CapturedLabel" Text="CAPTURED" Foreground="{DynamicResource TextSubtle3Brush}" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="CapturedValue" Text="0" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="1"><TextBlock x:Name="IncludedLabel" Text="IN REPORT" Foreground="{DynamicResource TextSubtle3Brush}" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="IncludedValue" Text="0" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="2"><TextBlock x:Name="CheckpointLabel" Text="CHECKPOINTS" Foreground="{DynamicResource TextSubtle3Brush}" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="CheckpointValue" Text="0" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+                <StackPanel Grid.Column="3"><TextBlock x:Name="QualityLabel" Text="REPORT READY" Foreground="{DynamicResource TextSubtle3Brush}" FontSize="9" FontWeight="Bold"/><TextBlock x:Name="QualityValue" Text="100%" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
             </Grid>
         </Border>
 
@@ -44,7 +44,7 @@
         </DataGrid>
 
         <Expander Grid.Row="3" x:Name="AdvancedExpander" Header="Advanced options for selected step" IsExpanded="False" Margin="0,12,0,0">
-            <Border Background="#0E1724" BorderBrush="#26384E" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,6,0,0">
+            <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource SurfaceExact7Brush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,6,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/><ColumnDefinition Width="18"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="18"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/>
@@ -53,7 +53,7 @@
                     <CheckBox Grid.Column="2" x:Name="MaskCheck" Content="Mask evidence" Checked="AdvancedOption_Changed" Unchecked="AdvancedOption_Changed"/>
                     <CheckBox Grid.Column="4" x:Name="CheckpointCheck" Content="Checkpoint" Checked="AdvancedOption_Changed" Unchecked="AdvancedOption_Changed"/>
                     <StackPanel Grid.Column="6">
-                        <TextBlock x:Name="StageTitleLabel" Text="Checkpoint title" Foreground="#91A7BF" FontSize="9.5" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="StageTitleLabel" Text="Checkpoint title" Foreground="{DynamicResource TextSubtleBrush}" FontSize="9.5" Margin="0,0,0,4"/>
                         <TextBox x:Name="StageTitleBox" Height="34" VerticalContentAlignment="Center" TextChanged="StageTitleBox_TextChanged"/>
                     </StackPanel>
                 </Grid>
@@ -63,7 +63,7 @@
         <Grid Grid.Row="4" Margin="0,14,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center">
-                <TextBlock x:Name="HintText" Text="Keep only useful steps and improve unclear descriptions. Original evidence is never deleted." Foreground="#8198B0" TextWrapping="Wrap"/>
+                <TextBlock x:Name="HintText" Text="Keep only useful steps and improve unclear descriptions. Original evidence is never deleted." Foreground="{DynamicResource Muted3Brush}" TextWrapping="Wrap"/>
                 <Expander x:Name="MoreActionsExpander" Header="More review actions" Margin="0,6,0,0" IsExpanded="False">
                     <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
                         <Button x:Name="SaveBaselineButton" Content="Update visual baseline" Width="165" Click="SaveBaseline_Click" Margin="0,0,8,0"/>

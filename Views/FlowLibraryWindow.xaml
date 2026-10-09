@@ -1,11 +1,11 @@
 <Window x:Class="QAFlowRecorder.Views.FlowLibraryWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  Title="Reusable test flows — QAFlow" Width="760" Height="560" MinWidth="680" MinHeight="480" WindowStartupLocation="CenterOwner"
- Background="#090D14" Foreground="#F3F7FC" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
+ Background="{DynamicResource Bg0Brush}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
  <Grid Margin="18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
   <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
    <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="44" Height="44" Margin="0,0,12,0"/>
-   <StackPanel Grid.Column="1"><TextBlock x:Name="TitleText" Text="Reusable test flows" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="SubtitleText" Text="Use proven manual flows as regression references." Foreground="#91A7BF" Margin="0,3,0,0"/></StackPanel>
+   <StackPanel Grid.Column="1"><TextBlock x:Name="TitleText" Text="Reusable test flows" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="SubtitleText" Text="Use proven manual flows as regression references." Foreground="{DynamicResource TextSubtleBrush}" Margin="0,3,0,0"/></StackPanel>
   </Grid>
   <DataGrid Grid.Row="1" x:Name="FlowGrid" Margin="0,16,0,0" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
    <DataGrid.Columns><DataGridTextColumn x:Name="NameColumn" Header="Flow" Binding="{Binding Name}" Width="*"/><DataGridTextColumn x:Name="TypeColumn" Header="Type" Binding="{Binding TestType}" Width="140"/><DataGridTextColumn x:Name="StepsColumn" Header="Steps" Binding="{Binding Steps.Count}" Width="70"/><DataGridTextColumn x:Name="UpdatedColumn" Header="Updated" Binding="{Binding UpdatedAt.LocalDateTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/></DataGrid.Columns>

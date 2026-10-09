@@ -66,7 +66,14 @@ public static class Deduplicator
 
     private static QaEvent Clone(QaEvent e) => new()
     {
-        Id=e.Id, Timestamp=e.Timestamp, Kind=e.Kind, Url=e.Url, Description=e.Description, Selector=e.Selector, Value=e.Value,
-        Method=e.Method, StatusCode=e.StatusCode, X=e.X, Y=e.Y, Stack=e.Stack, Severity=e.Severity, IsAnnotationPoint=e.IsAnnotationPoint, IsExploration=e.IsExploration
+        Id=e.Id, Timestamp=e.Timestamp, Kind=e.Kind, Url=e.Url, Description=e.Description, TargetTitle=e.TargetTitle, Selector=e.Selector, Value=e.Value,
+        Method=e.Method, StatusCode=e.StatusCode, X=e.X, Y=e.Y, Stack=e.Stack, ApplicationName=e.ApplicationName, WindowTitle=e.WindowTitle,
+        ControlName=e.ControlName, ControlType=e.ControlType, AutomationId=e.AutomationId, Severity=e.Severity, IsAnnotationPoint=e.IsAnnotationPoint,
+        IsExploration=e.IsExploration, IsCheckpoint=e.IsCheckpoint, CheckpointKind=e.CheckpointKind, CheckpointTitle=e.CheckpointTitle,
+        IsImportant=e.IsImportant, ExcludeFromReport=e.ExcludeFromReport, CustomDescription=e.CustomDescription, MaskSensitiveEvidence=e.MaskSensitiveEvidence,
+        WebDomEnriched=e.WebDomEnriched, WebElementTag=e.WebElementTag, WebElementText=e.WebElementText, WebElementId=e.WebElementId,
+        WebElementName=e.WebElementName, WebElementRole=e.WebElementRole, WebAriaLabel=e.WebAriaLabel, WebDataTestId=e.WebDataTestId,
+        WebCssSelector=e.WebCssSelector, WebXPath=e.WebXPath, WebPrimarySelector=e.WebPrimarySelector, WebPrimarySelectorType=e.WebPrimarySelectorType,
+        WebSelectorConfidence=e.WebSelectorConfidence, WebPageTitle=e.WebPageTitle
     };
 }

@@ -35,7 +35,7 @@ public sealed class AutomationSuiteRunStore
                 var item = JsonSerializer.Deserialize<AutomationSuiteRun>(await File.ReadAllTextAsync(file), _json);
                 if (item is not null) list.Add(item);
             }
-            catch { }
+            catch (Exception ex) { TechnicalLogService.Warn(nameof(AutomationSuiteRunStore), "Load", ex.Message, ex); }
         }
         return list.OrderByDescending(x => x.StartedAt).ToList();
     }

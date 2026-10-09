@@ -5,7 +5,7 @@
         Width="456" Height="820" MinWidth="436" MinHeight="700"
         WindowStartupLocation="Manual"
         WindowStyle="None" ResizeMode="CanResizeWithGrip"
-        Background="#090D14" BorderBrush="#26364A" BorderThickness="1"
+        Background="{DynamicResource Bg0Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
         Topmost="True" Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid>
         <Grid.RowDefinitions>
@@ -14,7 +14,7 @@
             <RowDefinition Height="28"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#0D131D" BorderBrush="#26364A" BorderThickness="0,0,0,1"
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceDeepBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid Margin="14,0,8,0">
                 <Grid.ColumnDefinitions>
@@ -22,19 +22,19 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Border Width="48" Height="48" CornerRadius="13" Background="#101B29" BorderBrush="#31577B" BorderThickness="1" VerticalAlignment="Center">
+                <Border Width="48" Height="48" CornerRadius="13" Background="{DynamicResource SurfaceDeepBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" VerticalAlignment="Center">
                     <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="42" Height="42" Stretch="Uniform"/>
                 </Border>
                 <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
                     <TextBlock Text="QAFlow Recorder" FontWeight="SemiBold" FontSize="15.2"/>
-                    <TextBlock x:Name="ProductSubtitleText" Text="QA evidence recorder" Foreground="#7F96AE" FontSize="9.2" Margin="0,1,0,0"/>
+                    <TextBlock x:Name="ProductSubtitleText" Text="QA evidence recorder" Foreground="{DynamicResource Muted3Brush}" FontSize="9.2" Margin="0,1,0,0"/>
                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
-                        <Ellipse x:Name="StateDot" Width="7" Height="7" Fill="#65758A" Margin="0,1,6,0"/>
-                        <TextBlock x:Name="StateText" Text="No session" Foreground="#9AAEC3" FontSize="9.8"/>
+                        <Ellipse x:Name="StateDot" Width="7" Height="7" Fill="{DynamicResource MutedBrush}" Margin="0,1,6,0"/>
+                        <TextBlock x:Name="StateText" Text="No session" Foreground="{DynamicResource Muted2Brush}" FontSize="9.8"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="DownloadExtensionButton" Content="⬇ EXT" Width="56" Height="32" Padding="4,0" Margin="0,0,4,0" Background="#12243A" BorderBrush="#31577B" ToolTip="Download QAFlow browser extension" Click="DownloadExtension_Click"/>
+                    <Button x:Name="DownloadExtensionButton" Content="⬇ EXT" Width="56" Height="32" Padding="4,0" Margin="0,0,4,0" Background="{DynamicResource SurfaceAccentBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" ToolTip="Download QAFlow browser extension" Click="DownloadExtension_Click"/>
                     <ComboBox x:Name="UiLanguageBox" Width="66" Height="32" Margin="0,0,4,0" SelectionChanged="UiLanguageBox_SelectionChanged"><ComboBoxItem Content="EN" IsSelected="True"/><ComboBoxItem Content="ES"/></ComboBox>
                     <Button x:Name="PinButton" Content="📌" Width="34" Height="32" Padding="0" Background="Transparent" BorderThickness="0" ToolTip="Keep panel always on top" Click="Pin_Click"/>
                     <Button Content="—" Width="34" Height="32" Padding="0" Background="Transparent" BorderThickness="0" Click="Min_Click"/>
@@ -43,7 +43,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Background="#0A1019">
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}">
             <Grid Margin="16,14,16,12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -63,21 +63,12 @@
                         <StackPanel>
                             <TextBlock x:Name="RecorderTitleText" Text="Capture your QA flow" FontSize="22" FontWeight="SemiBold"/>
                             <TextBlock x:Name="RecorderSubtitleText" Text="Work naturally. QAFlow records desktop interactions and visual evidence, then builds a clear QA report."
-                                       TextWrapping="Wrap" Foreground="#8FA3B8" FontSize="11.5" Margin="0,4,0,16"/>
+                                       TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" FontSize="11.5" Margin="0,4,0,16"/>
 
                             <TextBlock x:Name="SessionNameLabel" Text="Session name" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
                             <TextBox x:Name="SessionNameBox" Height="42" VerticalContentAlignment="Center" ToolTip="E.g. Checkout validation"/>
 
-                            <Expander x:Name="OrganizationExpander" Header="Organization (optional)" Margin="0,10,0,0">
-                                <StackPanel Margin="0,8,0,2">
-                                    <TextBlock x:Name="SessionFolderLabel" Text="Folder / project" FontSize="10.5" Foreground="#91A7BF"/>
-                                    <TextBox x:Name="SessionFolderBox" Height="36" Margin="0,4,0,7" VerticalContentAlignment="Center" ToolTip="E.g. Sprint 24 / Checkout"/>
-                                    <TextBlock x:Name="SessionTagsLabel" Text="Tags" FontSize="10.5" Foreground="#91A7BF"/>
-                                    <TextBox x:Name="SessionTagsBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Comma-separated tags, e.g. regression, checkout, staging"/>
-                                </StackPanel>
-                            </Expander>
-
-                            <TextBlock x:Name="TestTypeLabel" Text="Test type" FontWeight="SemiBold" FontSize="12" Margin="0,14,0,6"/>
+                            <TextBlock x:Name="TestTypeLabel" Text="Test type" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,6"/>
                             <ComboBox x:Name="TemplateBox" Height="40">
                                 <ComboBoxItem Content="Functional Normal" IsSelected="True"/>
                                 <ComboBoxItem Content="Regression"/>
@@ -85,52 +76,79 @@
                                 <ComboBoxItem Content="Smoke"/>
                                 <ComboBoxItem Content="Exploratory"/>
                             </ComboBox>
-                            <Expander x:Name="CharterExpander" Header="Exploratory charter (optional)" Margin="0,10,0,0">
-                                <StackPanel Margin="0,8,0,2">
-                                    <TextBlock x:Name="CharterObjectiveLabel" Text="Objective" FontSize="10.5" Foreground="#91A7BF"/><TextBox x:Name="CharterObjectiveBox" Height="48" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
-                                    <TextBlock x:Name="CharterScopeLabel" Text="Scope" FontSize="10.5" Foreground="#91A7BF"/><TextBox x:Name="CharterScopeBox" Height="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
-                                    <TextBlock x:Name="CharterRisksLabel" Text="Risks to observe" FontSize="10.5" Foreground="#91A7BF"/><TextBox x:Name="CharterRisksBox" Height="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
-                                    <TextBlock x:Name="CharterDataLabel" Text="Test data" FontSize="10.5" Foreground="#91A7BF"/><TextBox x:Name="CharterDataBox" Height="38" Margin="0,4,0,7"/>
-                                    <TextBlock x:Name="CharterConstraintsLabel" Text="Constraints / notes" FontSize="10.5" Foreground="#91A7BF"/><TextBox x:Name="CharterConstraintsBox" Height="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
-                                    <TextBlock x:Name="CharterMinutesLabel" Text="Planned duration (minutes)" FontSize="10.5" Foreground="#91A7BF"/><TextBox x:Name="CharterMinutesBox" Height="34" Width="100" HorizontalAlignment="Left" Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Expander>
-                            <TextBlock x:Name="ReferenceFlowLabel" Text="Reference flow (optional)" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,6"/>
-                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <ComboBox x:Name="ReferenceFlowBox" Height="38" SelectedValuePath="Id">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <Button Grid.Column="2" x:Name="ManageFlowsButton" Content="Library" Width="82" Click="ManageFlows_Click"/>
-                            </Grid>
+
                             <CheckBox x:Name="ShowFloatingBarCheck" Content="Show recording control bar" IsChecked="True" Margin="0,12,0,0"/>
 
-                            <Border Margin="0,16,0,0" Padding="13" Background="#111A27" BorderBrush="#26364A" BorderThickness="1" CornerRadius="10">
+                            <Border Margin="0,14,0,0" Padding="11" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0"><TextBlock x:Name="TimeMetricLabel" Text="TIME" FontSize="9.5" Foreground="#7E91A8"/><TextBlock x:Name="TimeMetric" Text="00:00:00" FontSize="18" FontWeight="SemiBold"/></StackPanel>
-                                    <StackPanel Grid.Column="1"><TextBlock x:Name="ActionsMetricLabel" Text="INTERACTIONS" FontSize="9.5" Foreground="#7E91A8"/><TextBlock x:Name="ActionsMetric" Text="0" FontSize="18" FontWeight="SemiBold"/></StackPanel>
-                                    <StackPanel Grid.Column="2"><TextBlock x:Name="PagesMetricLabel" Text="TARGETS" FontSize="9.5" Foreground="#7E91A8"/><TextBlock x:Name="PagesMetric" Text="0" FontSize="18" FontWeight="SemiBold"/></StackPanel>
-                                    <StackPanel Grid.Column="3"><TextBlock x:Name="NotesMetricLabel" Text="FINDINGS" FontSize="9.5" Foreground="#7E91A8"/><TextBlock x:Name="NotesMetric" Text="0 / 0" FontSize="18" FontWeight="SemiBold"/></StackPanel>
-                                    <TextBlock x:Name="HotkeysText" Grid.Row="1" Grid.ColumnSpan="4" Text="Ctrl+Shift+R finish · Ctrl+Shift+A annotate · Ctrl+Shift+P pause · Ctrl+Shift+B bug"
-                                               Foreground="#71869E" FontSize="9.5" Margin="0,9,0,0" TextWrapping="Wrap"/>
+                                    <StackPanel Grid.Column="0"><TextBlock x:Name="TimeMetricLabel" Text="TIME" FontSize="9.2" Foreground="{DynamicResource MutedExact1Brush}"/><TextBlock x:Name="TimeMetric" Text="00:00:00" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                                    <StackPanel Grid.Column="1"><TextBlock x:Name="ActionsMetricLabel" Text="INTERACTIONS" FontSize="9.2" Foreground="{DynamicResource MutedExact1Brush}"/><TextBlock x:Name="ActionsMetric" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                                    <StackPanel Grid.Column="2"><TextBlock x:Name="PagesMetricLabel" Text="TARGETS" FontSize="9.2" Foreground="{DynamicResource MutedExact1Brush}"/><TextBlock x:Name="PagesMetric" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                                    <StackPanel Grid.Column="3"><TextBlock x:Name="NotesMetricLabel" Text="FINDINGS" FontSize="9.2" Foreground="{DynamicResource MutedExact1Brush}"/><TextBlock x:Name="NotesMetric" Text="0 / 0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                                    <TextBlock x:Name="HotkeysText" Grid.Row="1" Grid.ColumnSpan="4" Text="Ctrl+Shift+R finish · Ctrl+Shift+M mark · Ctrl+Shift+K checklist · Ctrl+Shift+B bug"
+                                               Foreground="{DynamicResource Muted3Brush}" FontSize="9.2" Margin="0,7,0,0" TextWrapping="Wrap"/>
                                 </Grid>
                             </Border>
 
-                            <Button x:Name="StartButton" Style="{StaticResource PrimaryButton}" Content="▶  Start QA session" Height="50" Margin="0,16,0,0" Click="Start_Click"/>
-                            <Grid Margin="0,9,0,0">
+                            <Button x:Name="StartButton" Style="{StaticResource PrimaryButton}" Content="▶  Start QA session" Height="50" Margin="0,14,0,0" Click="Start_Click"/>
+                            <Grid Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                 <Button x:Name="PauseButton" Content="⏸  Pause" IsEnabled="False" Click="Pause_Click"/>
                                 <Button Grid.Column="2" x:Name="FinishButton" Style="{StaticResource DangerButton}" Content="■  Finish" IsEnabled="False" Click="Finish_Click"/>
                             </Grid>
 
-                            <Border Margin="0,16,0,0" Padding="12" Background="#101925" BorderBrush="#22354A" BorderThickness="1" CornerRadius="10">
+                            <Expander x:Name="AdvancedSessionExpander" Header="Advanced session options" Margin="0,14,0,0" IsExpanded="False">
+                                <StackPanel Margin="0,9,0,2">
+                                    <TextBlock x:Name="SessionTemplateLabel" Text="Session template (optional)" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="SessionTemplateBox" Height="38" SelectionChanged="SessionTemplateBox_SelectionChanged" DisplayMemberPath="DisplayName"/>
+                                        <Button Grid.Column="2" x:Name="ManageSessionTemplatesButton" Content="Manage" Width="82" Click="ManageSessionTemplates_Click"/>
+                                    </Grid>
+
+                                    <Expander x:Name="OrganizationExpander" Header="Organization (optional)" Margin="0,10,0,0">
+                                        <StackPanel Margin="0,8,0,2">
+                                            <TextBlock x:Name="SessionFolderLabel" Text="Folder / project" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
+                                            <TextBox x:Name="SessionFolderBox" Height="36" Margin="0,4,0,7" VerticalContentAlignment="Center" ToolTip="E.g. Sprint 24 / Checkout"/>
+                                            <TextBlock x:Name="SessionTagsLabel" Text="Tags" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
+                                            <TextBox x:Name="SessionTagsBox" Height="36" Margin="0,4,0,7" VerticalContentAlignment="Center" ToolTip="Comma-separated tags, e.g. regression, checkout, staging"/>
+                                            <TextBlock x:Name="BuildVersionLabel" Text="Build / version" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
+                                            <TextBox x:Name="BuildVersionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Optional software build or release under test"/>
+                                        </StackPanel>
+                                    </Expander>
+
+                                    <Expander x:Name="CharterExpander" Header="Exploratory charter (optional)" Margin="0,10,0,0">
+                                        <StackPanel Margin="0,8,0,2">
+                                            <TextBlock x:Name="CharterObjectiveLabel" Text="Objective" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><TextBox x:Name="CharterObjectiveBox" Height="48" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
+                                            <TextBlock x:Name="CharterScopeLabel" Text="Scope" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><TextBox x:Name="CharterScopeBox" Height="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
+                                            <TextBlock x:Name="CharterRisksLabel" Text="Risks to observe" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><TextBox x:Name="CharterRisksBox" Height="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
+                                            <TextBlock x:Name="CharterDataLabel" Text="Test data" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><TextBox x:Name="CharterDataBox" Height="38" Margin="0,4,0,7"/>
+                                            <TextBlock x:Name="CharterConstraintsLabel" Text="Constraints / notes" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><TextBox x:Name="CharterConstraintsBox" Height="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,7"/>
+                                            <TextBlock x:Name="CharterMinutesLabel" Text="Planned duration (minutes)" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><TextBox x:Name="CharterMinutesBox" Height="34" Width="100" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Expander>
+                                    <Expander x:Name="ChecklistExpander" Header="Manual checklist (optional)" Margin="0,10,0,0">
+                                        <StackPanel Margin="0,8,0,2">
+                                            <TextBlock x:Name="ChecklistHelpText" Text="One validation per line. Update results during the session from the recording bar." Foreground="{DynamicResource MutedExact3Brush}" FontSize="9.8" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                            <TextBox x:Name="ChecklistDefinitionBox" Height="92" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                        </StackPanel>
+                                    </Expander>
+                                    <TextBlock x:Name="ReferenceFlowLabel" Text="Reference flow (optional)" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,6"/>
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="ReferenceFlowBox" Height="38" SelectedValuePath="Id">
+                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate></ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Button Grid.Column="2" x:Name="ManageFlowsButton" Content="Library" Width="82" Click="ManageFlows_Click"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Expander>
+
+                            <Border Margin="0,16,0,0" Padding="12" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource SurfaceExact6Brush}" BorderThickness="1" CornerRadius="10">
                                 <StackPanel>
-                                    <TextBlock x:Name="PrivacyTitleText" Text="LOCAL BY DESIGN" FontSize="9.5" Foreground="#7C92AA" FontWeight="Bold"/>
+                                    <TextBlock x:Name="PrivacyTitleText" Text="LOCAL BY DESIGN" FontSize="9.5" Foreground="{DynamicResource Muted3Brush}" FontWeight="Bold"/>
                                     <TextBlock x:Name="PrivacyBodyText" Text="Evidence stays on this PC. QAFlow never records the characters you type."
-                                               TextWrapping="Wrap" Foreground="#90A3B8" FontSize="10.5" Margin="0,4,0,0"/>
+                                               TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" FontSize="10.5" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -140,22 +158,17 @@
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                         <StackPanel>
                             <TextBlock x:Name="HistoryTitleText" Text="History" FontSize="22" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="HistorySubtitleText" Text="Review saved sessions and multipart recordings." Foreground="#8FA3B8" FontSize="11" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="HistorySubtitleText" Text="Review saved sessions and multipart recordings." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Grid Grid.Row="1" Margin="0,13,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="8"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="6"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="6"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <TextBox x:Name="HistorySearch" Height="38" VerticalContentAlignment="Center" TextChanged="HistorySearch_TextChanged" ToolTip="Search by session, folder, tag or date"/>
-                            <Button Grid.Column="2" x:Name="TimelineHistoryButton" Content="Timeline" Padding="10,7" Click="TimelineHistory_Click" ToolTip="Open evidence timeline"/>
-                            <Button Grid.Column="4" x:Name="DeleteHistoryButton" Content="Delete" Padding="10,7" Click="DeleteHistorySelected_Click" ToolTip="Delete selected session"/>
-                            <Button Grid.Column="6" x:Name="ClearHistoryButton" Style="{StaticResource DangerButton}" Content="Clear" Padding="10,7" Click="ClearHistory_Click" ToolTip="Delete all saved session history"/>
+                            <UniformGrid Grid.Row="2" Columns="4">
+                                <Button x:Name="TimelineHistoryButton" Content="Timeline" Margin="0,0,4,0" Padding="8,7" Click="TimelineHistory_Click" ToolTip="Open evidence timeline"/>
+                                <Button x:Name="CompareHistoryButton" Content="Compare" Margin="4,0" Padding="8,7" Click="CompareHistory_Click" ToolTip="Compare selected session with the previous run"/>
+                                <Button x:Name="DeleteHistoryButton" Content="Delete" Margin="4,0" Padding="8,7" Click="DeleteHistorySelected_Click" ToolTip="Delete selected session"/>
+                                <Button x:Name="ClearHistoryButton" Style="{StaticResource DangerButton}" Content="Clear" Margin="4,0,0,0" Padding="8,7" Click="ClearHistory_Click" ToolTip="Delete all saved session history"/>
+                            </UniformGrid>
                         </Grid>
                         <DataGrid Grid.Row="2" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" MouseDoubleClick="HistoryGrid_MouseDoubleClick" FontSize="10.5">
                             <DataGrid.Columns>
@@ -170,23 +183,23 @@
                     <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
                             <TextBlock x:Name="SettingsTitleText" Text="Settings" FontSize="22" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="SettingsSubtitleText" Text="Report language, evidence and storage preferences." Foreground="#8FA3B8" FontSize="11" Margin="0,2,0,14"/>
-                            <Border Background="#101925" BorderBrush="#2A4058" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,14">
+                            <TextBlock x:Name="SettingsSubtitleText" Text="Report language, evidence and storage preferences." Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,2,0,14"/>
+                            <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderExact1Brush}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,14">
                                 <StackPanel>
                                     <TextBlock x:Name="ProductModeTitleText" Text="Product mode" FontWeight="SemiBold" FontSize="12"/>
-                                    <TextBlock x:Name="ProductModeHelpText" Text="Keep QAFlow as a universal recorder, or enable the web-only hybrid automation workspace." Foreground="#8197AF" FontSize="9.8" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                                    <TextBlock x:Name="ProductModeHelpText" Text="Keep QAFlow as a universal recorder, or enable the web-only hybrid automation workspace." Foreground="{DynamicResource MutedExact3Brush}" FontSize="9.8" TextWrapping="Wrap" Margin="0,3,0,8"/>
                                     <ComboBox x:Name="ProductModeBox" Height="38" SelectionChanged="ProductModeBox_SelectionChanged">
                                         <ComboBoxItem Content="Recorder Only" IsSelected="True"/>
                                         <ComboBoxItem Content="Hybrid Testing · Web Automation"/>
                                     </ComboBox>
 
-                                    <Border x:Name="AutomationSettingsPanel" Visibility="Collapsed" Margin="0,12,0,0" Background="#0D1622" BorderBrush="#284A68" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <Border x:Name="AutomationSettingsPanel" Visibility="Collapsed" Margin="0,12,0,0" Background="{DynamicResource SurfaceExact2Brush}" BorderBrush="{DynamicResource BorderExact2Brush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="🌐" FontSize="16" Margin="0,0,7,0"/>
                                                 <StackPanel>
                                                     <TextBlock x:Name="AutomationConfigTitleText" Text="Web automation configuration" FontWeight="SemiBold"/>
-                                                    <TextBlock x:Name="AutomationConfigScopeText" Text="Automation v1 is limited to configured web applications." Foreground="#7FA7C8" FontSize="9.5"/>
+                                                    <TextBlock x:Name="AutomationConfigScopeText" Text="Automation v1 is limited to configured web applications." Foreground="{DynamicResource TextSubtle2Brush}" FontSize="9.5"/>
                                                 </StackPanel>
                                             </StackPanel>
                                             <TextBlock x:Name="AutomationBaseUrlLabel" Text="Software under test · Base URL" Margin="0,10,0,4"/>
@@ -197,11 +210,22 @@
                                             <ComboBox x:Name="AutomationBrowserBox" Height="36">
                                                 <ComboBoxItem Content="Chrome" IsSelected="True"/>
                                                 <ComboBoxItem Content="Edge"/>
+                                                <ComboBoxItem Content="Firefox"/>
                                             </ComboBox>
                                             <CheckBox x:Name="CaptureOutOfScopeCheck" Content="Capture activity outside the URL as evidence only" IsChecked="True" Margin="0,10,0,0"/>
-                                            <TextBlock x:Name="AutomationSafetyText" Text="Desktop and unrelated web activity will never be converted to automated steps in this version." Foreground="#E1AD62" FontSize="9.5" TextWrapping="Wrap" Margin="0,7,0,0"/>
+                                            <TextBlock x:Name="AutomationSafetyText" Text="Desktop and unrelated web activity will never be converted to automated steps in this version." Foreground="{DynamicResource WarningTextBrush}" FontSize="9.5" TextWrapping="Wrap" Margin="0,7,0,0"/>
                                         </StackPanel>
                                     </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <TextBlock x:Name="AppearanceTitleText" Text="Appearance" FontWeight="SemiBold" FontSize="12"/>
+                                    <TextBlock x:Name="AppearanceHelpText" Text="Choose the interface style. Aero adds a brighter glass-inspired workspace while preserving the same controls and workflow." Foreground="{DynamicResource Muted3Brush}" FontSize="9.8" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                                    <ComboBox x:Name="ThemeBox" Height="38">
+                                        <ComboBoxItem Content="Dark" IsSelected="True"/>
+                                        <ComboBoxItem Content="Aero"/>
+                                    </ComboBox>
                                 </StackPanel>
                             </Border>
                             <TextBlock x:Name="QaNameLabel" Text="QA name"/><TextBox x:Name="QaNameBox" Margin="0,5,0,10" VerticalContentAlignment="Center"/>
@@ -209,16 +233,24 @@
                             <CheckBox x:Name="PeriodicShotCheck" Content="Periodic evidence capture" Margin="0,4"/>
                             <TextBlock x:Name="IntervalLabel" Text="Periodic interval (seconds)" Margin="0,8,0,4"/><TextBox x:Name="PeriodicSecondsBox" VerticalContentAlignment="Center"/>
                             <CheckBox x:Name="AppendixCheck" Content="Include technical appendix" Margin="0,10,0,4"/>
-                            <TextBlock x:Name="QualityLabel" Text="Image quality" Margin="0,8,0,4"/><Slider x:Name="QualitySlider" Minimum="50" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"/>
+                            <TextBlock x:Name="QualityLabel" Text="PDF evidence quality" Margin="0,8,0,4"/><Slider x:Name="QualitySlider" Minimum="50" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="100 keeps original evidence bytes; lower values optimize PDF size with controlled high-quality encoding."/>
                             <TextBlock x:Name="DocLanguageLabel" Text="Document language" Margin="0,8,0,4"/>
                             <ComboBox x:Name="LanguageBox" SelectionChanged="LanguageBox_SelectionChanged"><ComboBoxItem Content="English"/><ComboBoxItem Content="Español"/></ComboBox>
+                            <TextBlock x:Name="PdfBrandingLabel" Text="PDF report branding" Margin="0,12,0,4" FontWeight="SemiBold"/>
+                            <TextBox x:Name="CompanyLogoPathBox" IsReadOnly="True" VerticalContentAlignment="Center" ToolTip="Custom logo used in exported PDF reports. If empty, QAFlow branding is used."/>
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Button x:Name="BrowseCompanyLogoButton" Grid.Column="0" Content="Choose company logo" Click="BrowseCompanyLogo_Click"/>
+                                <Button x:Name="ClearCompanyLogoButton" Grid.Column="2" Content="Use QAFlow logo" Click="ClearCompanyLogo_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="CompanyLogoHelpText" Text="PNG, JPG, WEBP, BMP or SVG. A configured company logo replaces QAFlow branding in exported PDFs." Foreground="{DynamicResource Muted3Brush}" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <TextBlock x:Name="PrivacyMaskLabel" Text="Sensitive data masking" Margin="0,10,0,4"/>
                             <ComboBox x:Name="PrivacyMaskBox"><ComboBoxItem Content="Automatic" IsSelected="True"/><ComboBoxItem Content="Manual"/><ComboBoxItem Content="Off"/></ComboBox>
                             <Button x:Name="ManagePrivacyZonesButton" Content="Manage privacy zones" Margin="0,8,0,0" Click="ManagePrivacyZones_Click" ToolTip="Define areas that should always be hidden in screenshots"/>
-                            <TextBlock x:Name="PrivacyZonesHelpText" Text="Privacy zones are applied locally before evidence is saved." Foreground="#71869E" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock x:Name="PrivacyZonesHelpText" Text="Privacy zones are applied locally before evidence is saved." Foreground="{DynamicResource Muted3Brush}" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <TextBlock x:Name="CoverageTargetsLabel" Text="Coverage targets (optional)" Margin="0,10,0,4"/>
                             <TextBox x:Name="CoverageTargetsBox" Height="64" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" ToolTip="Optional comma-separated applications, modules or windows expected in the test."/>
-                            <TextBlock x:Name="CoverageHelpText" Text="If left empty, QAFlow reports the observed coverage footprint without claiming full application coverage." Foreground="#71869E" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock x:Name="CoverageHelpText" Text="If left empty, QAFlow reports the observed coverage footprint without claiming full application coverage." Foreground="{DynamicResource Muted3Brush}" FontSize="9.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <CheckBox x:Name="VisualComparisonCheck" Content="Include baseline visual comparison" Margin="0,10,0,4" IsChecked="True"/>
                             <CheckBox x:Name="EvidenceQualityCheck" Content="Include evidence quality assessment" Margin="0,4" IsChecked="True"/>
                             <TextBlock x:Name="FileTemplateLabel" Text="File name template" Margin="0,8,0,4"/><TextBox x:Name="FileTemplateBox" VerticalContentAlignment="Center"/>
@@ -230,11 +262,11 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Background="#0D131D" BorderBrush="#26364A" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceDeepBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="10,0">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <TextBlock x:Name="StatusBar" Grid.Column="0" Text="Ready" Foreground="#7F93AA" FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
-                <TextBlock x:Name="FooterBrandText" Grid.Column="1" Text="Local-first · QAFlow Recorder 1.0" Foreground="#63778E" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock x:Name="StatusBar" Grid.Column="0" Text="Ready" Foreground="{DynamicResource MutedExact2Brush}" FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                <TextBlock x:Name="FooterBrandText" Grid.Column="1" Text="Local-first · QAFlow Recorder 1.0" Foreground="{DynamicResource MutedBrush}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

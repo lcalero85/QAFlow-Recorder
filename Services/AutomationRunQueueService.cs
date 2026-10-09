@@ -1,4 +1,4 @@
-using QAFlowRecorder.Models;
+﻿using QAFlowRecorder.Models;
 
 namespace QAFlowRecorder.Services;
 
@@ -38,9 +38,20 @@ public sealed class AutomationRunQueueService
                     ItemChanged?.Invoke(item);
                 }
 
+                var capability = AutomationBrowserCapabilityService.Check(item.Browser);
+                if (capability.Detected)
+                {
+                    item.BrowserVersion = capability.Version;
+                    item.BrowserExecutablePath = capability.ExecutablePath;
+                    item.Message = string.IsNullOrWhiteSpace(capability.Version)
+                        ? "Starting web suite execution..."
+                        : $"Starting web suite execution with {item.Browser} v{capability.Version}...";
+                    ItemChanged?.Invoke(item);
+                }
+
                 await PersistQueueAsync(queue);
                 var runner = new AutomationHeadlessSuiteRunner();
-                var code = await runner.RunAsync(item.ProjectId, item.SuiteId, item.EnvironmentId, false, cancellationToken, item.Browser);
+                var code = await runner.RunAsync(item.ProjectId, item.SuiteId, item.EnvironmentId, false, cancellationToken, item.Browser, settings.BrowserHeadless);
                 item.ExitCode = code;
                 item.Status = code switch
                 {

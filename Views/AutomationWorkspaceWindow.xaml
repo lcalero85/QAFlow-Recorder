@@ -2,21 +2,21 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="QAFlow Automation Workspace" Width="1120" Height="760" MinWidth="980" MinHeight="650"
-        WindowStartupLocation="CenterOwner" Background="#090D14" Foreground="#F3F7FC"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource Bg0Brush}" Foreground="{DynamicResource TextBrush}"
         Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid Margin="18">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="12" Padding="16">
+        <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="44" Height="44" Stretch="Uniform"/>
                 <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                     <TextBlock x:Name="TitleText" Text="Automation Workspace" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="SubtitleText" Text="Organize web automation assets without changing Recorder behavior." Foreground="#8FA8C0" FontSize="11" Margin="0,3,0,0"/>
+                    <TextBlock x:Name="SubtitleText" Text="Organize web automation assets without changing Recorder behavior." Foreground="{DynamicResource Muted4Brush}" FontSize="11" Margin="0,3,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="2" Background="#102638" BorderBrush="#285A7D" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
-                    <TextBlock x:Name="ModeBadgeText" Text="WEB ONLY · CAPTURE → TEST CASE → RUN" Foreground="#77C9FF" FontWeight="SemiBold" FontSize="10"/>
+                <Border Grid.Column="2" Background="{DynamicResource SurfaceAccentBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                    <TextBlock x:Name="ModeBadgeText" Text="WEB ONLY · CAPTURE → TEST CASE → RUN" Foreground="{DynamicResource AccentLightBrush}" FontWeight="SemiBold" FontSize="10"/>
                 </Border>
             </Grid>
         </Border>
@@ -24,7 +24,7 @@
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="#0E1622" BorderBrush="#263A50" BorderThickness="1" CornerRadius="10" Padding="12">
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceDeepBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <Grid>
@@ -37,7 +37,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="10" Padding="14">
+            <Border Grid.Column="2" Background="{DynamicResource SurfacePanel2Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
 
@@ -53,11 +53,11 @@
                         </StackPanel>
                         <StackPanel Grid.Column="4">
                             <TextBlock x:Name="BrowserLabel" Text="Browser" FontWeight="SemiBold"/>
-                            <ComboBox x:Name="BrowserBox" Margin="0,5,0,0" Height="38" SelectionChanged="ProjectEditor_Changed"><ComboBoxItem Content="Chrome" IsSelected="True"/><ComboBoxItem Content="Edge"/></ComboBox>
+                            <ComboBox x:Name="BrowserBox" Margin="0,5,0,0" Height="38" SelectionChanged="ProjectEditor_Changed"><ComboBoxItem Content="Chrome" IsSelected="True"/><ComboBoxItem Content="Edge"/><ComboBoxItem Content="Firefox"/></ComboBox>
                         </StackPanel>
                     </Grid>
 
-                    <TextBlock Grid.Row="2" x:Name="ProjectHintText" Text="Phase 3 can convert recorded web activity into reviewable Test Case drafts. Automatic execution is still disabled." Foreground="#7FA4C3" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Row="2" x:Name="ProjectHintText" Text="Phase 3 can convert recorded web activity into reviewable Test Case drafts. Automatic execution is still disabled." Foreground="{DynamicResource TextSubtle2Brush}" TextWrapping="Wrap"/>
 
                     <TabControl Grid.Row="4" x:Name="WorkspaceTabs">
                         <TabItem x:Name="SuitesTab" Header="Suites">
@@ -65,7 +65,7 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="SuitesHelpText" Text="Group related test cases into suites." Foreground="#8FA8C0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SuitesHelpText" Text="Group related test cases into suites." Foreground="{DynamicResource Muted4Brush}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" x:Name="RunSuiteButton" Content="▶ Run suite" Style="{StaticResource PrimaryButton}" Click="RunSuite_Click" IsEnabled="False"/>
                                     <Button Grid.Column="3" x:Name="NewSuiteButton" Content="＋ Suite" Click="NewSuite_Click"/>
                                     <Button Grid.Column="5" x:Name="DeleteSuiteButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteSuite_Click"/>
@@ -86,7 +86,7 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="CasesContextText" Text="Select a suite to manage its test cases." Foreground="#8FA8C0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="CasesContextText" Text="Select a suite to manage its test cases." Foreground="{DynamicResource Muted4Brush}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" x:Name="RunCaseButton" Content="▶ Run selected" Style="{StaticResource PrimaryButton}" Click="RunCase_Click" IsEnabled="False"/>
                                     <Button Grid.Column="3" x:Name="NewCaseButton" Content="＋ Test case" Click="NewCase_Click"/>
                                     <Button Grid.Column="5" x:Name="DeleteCaseButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteCase_Click"/>
@@ -101,16 +101,16 @@
                                         <DataGridTextColumn Header="Steps" Binding="{Binding Steps.Count}" Width="58" IsReadOnly="True"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
-                                <Border Grid.Row="4" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="10">
+                                <Border Grid.Row="4" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="150"/></Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <TextBlock x:Name="CaseDescriptionLabel" Text="Description" Foreground="#90A6BC"/>
+                                            <TextBlock x:Name="CaseDescriptionLabel" Text="Description" Foreground="{DynamicResource Muted2Brush}"/>
                                             <TextBox x:Name="CaseDescriptionBox" Height="56" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,0" TextChanged="CaseEditor_Changed"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock x:Name="CaseExpectedLabel" Text="Expected outcome" Foreground="#90A6BC"/>
+                                            <TextBlock x:Name="CaseExpectedLabel" Text="Expected outcome" Foreground="{DynamicResource Muted2Brush}"/>
                                             <TextBox x:Name="CaseExpectedBox" Height="56" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,4,0,0" TextChanged="CaseEditor_Changed"/>
                                         </StackPanel>
                                         <DataGrid Grid.Row="2" Grid.ColumnSpan="3" x:Name="CaseStepsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
@@ -136,18 +136,18 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock x:Name="GovernanceTitleText" Text="Versioning, approval &amp; audit" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="GovernanceHelpText" Text="Keep immutable test-case versions, review approvals and a local audit trail. Recorder behavior is unchanged." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="GovernanceHelpText" Text="Keep immutable test-case versions, review approvals and a local audit trail. Recorder behavior is unchanged." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
-                                <Border Grid.Row="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Grid.Row="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <TextBlock Text="Selected test case" Foreground="#7890A8" FontSize="10"/>
+                                            <TextBlock Text="Selected test case" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/>
                                             <TextBlock x:Name="GovernanceCaseText" Text="—" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/>
-                                            <TextBlock x:Name="GovernanceStateText" Text="Select a test case." Foreground="#9CB1C6" Margin="0,4,0,0"/>
+                                            <TextBlock x:Name="GovernanceStateText" Text="Select a test case." Foreground="{DynamicResource Muted2Brush}" Margin="0,4,0,0"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock x:Name="VersionNoteLabel" Text="Version / review note" Foreground="#7890A8" FontSize="10"/>
+                                            <TextBlock x:Name="VersionNoteLabel" Text="Version / review note" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/>
                                             <TextBox x:Name="VersionNoteBox" Height="38" Margin="0,5,0,0" VerticalContentAlignment="Center"/>
                                             <CheckBox x:Name="RequireApprovalCheck" Content="Require approved version for Assisted/Automated runs" Margin="0,8,0,0" Click="RequireApprovalCheck_Click"/>
                                         </StackPanel>
@@ -196,12 +196,12 @@
                         <TabItem x:Name="DataAssertionsTab" Header="Test Data &amp; Assertions">
                             <Grid Margin="10">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.35*"/></Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Grid.Column="0" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="150"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                                         <Grid>
                                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                            <StackPanel><TextBlock x:Name="TestDataTitleText" Text="Test data sets" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="TestDataHelpText" Text="Variables resolve expressions such as ${username}. Secrets stay in Windows Credential Manager." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                            <StackPanel><TextBlock x:Name="TestDataTitleText" Text="Test data sets" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="TestDataHelpText" Text="Variables resolve expressions such as ${username}. Secrets stay in Windows Credential Manager." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
                                             <Button Grid.Column="1" x:Name="NewDataSetButton" Content="＋ Data set" Click="NewDataSet_Click"/>
                                             <Button Grid.Column="3" x:Name="DeleteDataSetButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteDataSet_Click"/>
                                         </Grid>
@@ -214,8 +214,8 @@
                                         </DataGrid>
                                         <Grid Grid.Row="4">
                                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                            <StackPanel><TextBlock x:Name="VariableNameLabel" Text="Variable" Foreground="#90A6BC"/><TextBox x:Name="VariableNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                            <StackPanel Grid.Column="2"><TextBlock x:Name="VariableValueLabel" Text="Value" Foreground="#90A6BC"/><TextBox x:Name="VariableValueBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/><PasswordBox x:Name="VariableSecretBox" Height="36" Margin="0,4,0,0" Visibility="Collapsed"/></StackPanel>
+                                            <StackPanel><TextBlock x:Name="VariableNameLabel" Text="Variable" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="VariableNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="VariableValueLabel" Text="Value" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="VariableValueBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/><PasswordBox x:Name="VariableSecretBox" Height="36" Margin="0,4,0,0" Visibility="Collapsed"/></StackPanel>
                                             <StackPanel Grid.Column="4" VerticalAlignment="Bottom"><CheckBox x:Name="VariableSecretCheck" Content="Secret" Checked="VariableSecretCheck_Changed" Unchecked="VariableSecretCheck_Changed"/><Button x:Name="SaveVariableButton" Content="Add / update" Margin="0,6,0,0" Click="SaveVariable_Click"/></StackPanel>
                                         </Grid>
                                         <DataGrid Grid.Row="6" x:Name="VariablesGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="VariablesGrid_SelectionChanged">
@@ -229,29 +229,33 @@
                                     </Grid>
                                 </Border>
 
-                                <Border Grid.Column="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Grid.Column="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                        <StackPanel><TextBlock x:Name="AssertionsTitleText" Text="Step data &amp; assertions" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="AssertionsHelpText" Text="Bind input/select values to test data and validate the expected browser state after a step." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <StackPanel><TextBlock x:Name="AssertionsTitleText" Text="Step data &amp; assertions" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="AssertionsHelpText" Text="Bind input/select values to test data and validate the expected browser state after a step." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
                                         <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                            <StackPanel><TextBlock x:Name="AssertionCaseLabel" Text="Test case" Foreground="#90A6BC"/><ComboBox x:Name="AssertionCaseBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="AssertionCaseBox_SelectionChanged"/></StackPanel>
-                                            <StackPanel Grid.Column="2"><TextBlock x:Name="AssertionStepLabel" Text="Step" Foreground="#90A6BC"/><ComboBox x:Name="AssertionStepBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="AssertionStepBox_SelectionChanged"/></StackPanel>
+                                            <StackPanel><TextBlock x:Name="AssertionCaseLabel" Text="Test case" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="AssertionCaseBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="AssertionCaseBox_SelectionChanged"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="AssertionStepLabel" Text="Step" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="AssertionStepBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="AssertionStepBox_SelectionChanged"/></StackPanel>
                                         </Grid>
-                                        <Border Grid.Row="4" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="7" Padding="10">
+                                        <Border Grid.Row="4" Background="{DynamicResource SurfacePanel2Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="7" Padding="10">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock x:Name="DefaultDataSetLabel" Text="Default data set" Foreground="#90A6BC"/><ComboBox x:Name="DefaultDataSetBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="DefaultDataSetBox_SelectionChanged"/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock x:Name="ValueExpressionLabel" Text="Step value expression" Foreground="#90A6BC"/><TextBox x:Name="ValueExpressionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" TextChanged="ValueExpressionBox_TextChanged" ToolTip="Examples: ${username}, ${password}, Active"/></StackPanel>
+                                                <StackPanel><TextBlock x:Name="DefaultDataSetLabel" Text="Default data set" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="DefaultDataSetBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="DefaultDataSetBox_SelectionChanged"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock x:Name="ValueExpressionLabel" Text="Step value expression" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ValueExpressionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" TextChanged="ValueExpressionBox_TextChanged" ToolTip="Examples: ${username}, ${password}, Active"/></StackPanel>
                                             </Grid>
                                         </Border>
                                         <Grid Grid.Row="6">
-                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                                 <ComboBox x:Name="AssertionTypeBox" Grid.Column="0" Height="36"/>
-                                                <TextBox x:Name="AssertionExpectedBox" Grid.Column="2" Height="36" VerticalContentAlignment="Center" ToolTip="Expected text/value when required."/>
+                                                <TextBox x:Name="AssertionExpectedBox" Grid.Column="2" Height="36" VerticalContentAlignment="Center" ToolTip="VisualBaselineMatch: 0-100. Performance budgets use milliseconds: MaxPageLoadMs, MaxDomContentLoadedMs, MaxFirstContentfulPaintMs, MaxResourceDurationMs. NoConsoleErrors/NoNetworkErrors need no value."/>
                                                 <Button x:Name="AddAssertionButton" Grid.Column="4" Content="＋ Assertion" Click="AddAssertion_Click"/>
                                                 <Button x:Name="DeleteAssertionButton" Grid.Column="6" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteAssertion_Click"/>
                                             </Grid>
-                                            <DataGrid Grid.Row="2" x:Name="AssertionsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
+                                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock x:Name="VisualBaselineStatusText" VerticalAlignment="Center" Foreground="{DynamicResource Muted4Brush}" Text="Visual baseline: select a step." TextTrimming="CharacterEllipsis"/>
+                                                <Button x:Name="UpdateAutomationVisualBaselineButton" Grid.Column="1" Margin="10,0,0,0" Content="Update visual baseline from latest run" Click="UpdateAutomationVisualBaseline_Click"/>
+                                            </Grid>
+                                            <DataGrid Grid.Row="4" x:Name="AssertionsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
                                                 <DataGrid.Columns>
                                                     <DataGridTextColumn Header="Assertion" Binding="{Binding Type}" Width="180"/>
                                                     <DataGridTextColumn Header="Expected" Binding="{Binding Expected}" Width="*"/>
@@ -265,21 +269,56 @@
                         </TabItem>
 
 
+                        <TabItem x:Name="LifecycleDataTab" Header="Lifecycle &amp; Data-driven">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <StackPanel>
+                                        <TextBlock x:Name="LifecycleTitleText" Text="Advanced test lifecycle" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="LifecycleHelpText" Text="Optional reusable fixtures run around suites and test cases. They never block the normal Recorder workflow." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,10"/>
+                                        <TextBlock Text="Suite hooks" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"/>
+                                        <Grid Margin="0,6,0,10"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock x:Name="BeforeSuiteLabel" Text="Before suite" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="BeforeSuiteComponentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="AfterSuiteLabel" Text="After suite" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="AfterSuiteComponentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                        </Grid>
+                                        <Separator Background="{DynamicResource BorderStrongBrush}" Margin="0,2,0,10"/>
+                                        <TextBlock Text="Test case lifecycle" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"/>
+                                        <TextBlock x:Name="LifecycleCaseLabel" Text="Test case" Foreground="{DynamicResource Muted2Brush}" Margin="0,6,0,0"/><ComboBox x:Name="LifecycleCaseBox" Height="36" Margin="0,4,0,8" DisplayMemberPath="DisplayName" SelectionChanged="LifecycleCaseBox_SelectionChanged"/>
+                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock x:Name="BeforeTestLabel" Text="Before test" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="BeforeTestComponentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="AfterTestLabel" Text="After test" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="AfterTestComponentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                        </Grid>
+                                        <TextBlock x:Name="DependencyLabel" Text="Run only after this case passes (optional)" Foreground="{DynamicResource Muted2Brush}" Margin="0,8,0,0"/>
+                                        <ComboBox x:Name="DependencyCaseBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <StackPanel><TextBlock x:Name="DataDrivenTitleText" Text="Data-driven execution" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="DataDrivenHelpText" Text="Run the selected test case once for each selected data set. Each iteration keeps its own evidence and HTML report." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <CheckBox Grid.Row="2" x:Name="DataDrivenEnabledCheck" Content="Enable multiple data iterations for this case"/>
+                                        <ListBox Grid.Row="4" x:Name="DataDrivenSetsList" DisplayMemberPath="DisplayName" SelectionMode="Extended"/>
+                                        <TextBlock Grid.Row="6" x:Name="DataDrivenHintText" Text="Tip: Ctrl/Shift selects multiple data sets. Secrets remain in Windows Credential Manager." Foreground="{DynamicResource TextSubtle4Brush}" TextWrapping="Wrap" Margin="0,0,0,42"/>
+                                        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom"><Button x:Name="ClearLifecycleButton" Content="Clear advanced settings" Margin="0,0,8,0" Click="ClearLifecycle_Click"/><Button x:Name="SaveLifecycleButton" Content="Save advanced lifecycle &amp; data settings" Style="{StaticResource PrimaryButton}" Click="SaveLifecycle_Click"/></StackPanel>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
                         <TabItem x:Name="ComponentsRecoveryTab" Header="Components &amp; Recovery">
                             <Grid Margin="10">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.35*"/></Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Grid.Column="0" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                        <StackPanel><TextBlock x:Name="ComponentsTitleText" Text="Reusable web components" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="ComponentsHelpText" Text="Promote stable test flows into reusable building blocks and insert them into other test cases." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <StackPanel><TextBlock x:Name="ComponentsTitleText" Text="Reusable web components" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="ComponentsHelpText" Text="Promote stable test flows into reusable building blocks and insert them into other test cases." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
                                         <DataGrid Grid.Row="2" x:Name="ComponentsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="ComponentsGrid_SelectionChanged">
                                             <DataGrid.Columns><DataGridTextColumn Header="Component" Binding="{Binding Name}" Width="2*"/><DataGridTextColumn Header="Steps" Binding="{Binding Steps.Count}" Width="70"/><DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2.5*"/></DataGrid.Columns>
                                         </DataGrid>
                                         <Grid Grid.Row="4">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Name" Foreground="#90A6BC"/><TextBox x:Name="ComponentNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock Text="Description" Foreground="#90A6BC"/><TextBox x:Name="ComponentDescriptionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel><TextBlock Text="Name" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ComponentNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Description" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ComponentDescriptionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
                                             </Grid>
                                             <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                                 <Button x:Name="CreateComponentButton" Content="Save selected case as component" Click="CreateComponent_Click"/>
@@ -289,26 +328,128 @@
                                         </Grid>
                                     </Grid>
                                 </Border>
-                                <Border Grid.Column="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Grid.Column="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                        <StackPanel><TextBlock x:Name="RecoveryTitleText" Text="Recovery &amp; self-healing" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="RecoveryHelpText" Text="Configure retries and failure behavior. When stable selectors break, QAFlow attempts a conservative semantic recovery before asking the QA or failing the test." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <StackPanel><TextBlock x:Name="RecoveryTitleText" Text="Recovery &amp; self-healing" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="RecoveryHelpText" Text="Configure retries and failure behavior. When stable selectors break, QAFlow attempts a conservative semantic recovery before asking the QA or failing the test." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
                                         <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                            <StackPanel><TextBlock Text="Test case" Foreground="#90A6BC"/><ComboBox x:Name="RecoveryCaseBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecoveryCaseBox_SelectionChanged"/></StackPanel>
-                                            <StackPanel Grid.Column="2"><TextBlock Text="Step" Foreground="#90A6BC"/><ComboBox x:Name="RecoveryStepBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecoveryStepBox_SelectionChanged"/></StackPanel>
+                                            <StackPanel><TextBlock Text="Test case" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="RecoveryCaseBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecoveryCaseBox_SelectionChanged"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock Text="Step" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="RecoveryStepBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecoveryStepBox_SelectionChanged"/></StackPanel>
                                         </Grid>
-                                        <Border Grid.Row="4" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="7" Padding="10">
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Retries" Foreground="#90A6BC"/><TextBox x:Name="RecoveryRetriesBox" Text="1" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock Text="Delay (ms)" Foreground="#90A6BC"/><TextBox x:Name="RecoveryDelayBox" Text="600" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                                <StackPanel Grid.Column="4"><TextBlock Text="On failure" Foreground="#90A6BC"/><ComboBox x:Name="FailureActionBox" Height="36" Margin="0,4,0,0"/></StackPanel>
-                                            </Grid>
+                                        <Border Grid.Row="4" Background="{DynamicResource SurfacePanel2Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="7" Padding="10">
+                                            <StackPanel>
+                                                <TextBlock x:Name="SmartWaitLabel" Text="Smart wait" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" Margin="0,0,0,6"/>
+                                                <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <StackPanel><TextBlock x:Name="WaitConditionLabel" Text="Condition" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="WaitConditionBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2"><TextBlock x:Name="WaitTimeoutLabel" Text="Timeout (ms)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="WaitTimeoutBox" Text="10000" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                    <StackPanel Grid.Column="4"><TextBlock x:Name="WaitPollLabel" Text="Poll (ms)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="WaitPollBox" Text="250" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                </Grid>
+                                                <Separator Margin="0,10" Background="{DynamicResource BorderStrongBrush}"/>
+                                                <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <StackPanel><TextBlock Text="Retries" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="RecoveryRetriesBox" Text="1" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                    <StackPanel Grid.Column="2"><TextBlock Text="Delay (ms)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="RecoveryDelayBox" Text="600" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                    <StackPanel Grid.Column="4"><TextBlock Text="On failure" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="FailureActionBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                </Grid>
+                                                <Separator Margin="0,10" Background="{DynamicResource BorderStrongBrush}"/>
+                                                <TextBlock x:Name="AdvancedInteractionLabel" Text="Advanced web interaction" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" Margin="0,0,0,6"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <StackPanel><TextBlock x:Name="InteractionActionLabel" Text="Action" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="InteractionActionBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBlock x:Name="InteractionValueHelpText" Text="Value expression: KeyPress = ENTER/CTRL+A · UploadFile = file path · ValidateDownload = *.pdf · SetCookie/Storage = key=value · Delete/Remove = key or cookie name." Foreground="{DynamicResource Muted2Brush}" TextWrapping="Wrap"/>
+                                                        <CheckBox x:Name="JavaScriptClickFallbackCheck" Margin="0,7,0,0" Content="Allow JavaScript click fallback when a normal click is intercepted"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                                <Expander x:Name="ConditionalExecutionExpander" Header="Conditional execution (advanced)" Margin="0,10,0,0" IsExpanded="False">
+                                                    <Border Margin="0,6,0,0" Background="{DynamicResource SurfacePanel3Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="9">
+                                                        <StackPanel>
+                                                            <TextBlock x:Name="ConditionHelpText" Text="Optionally run this step only when a safe browser/data condition is met. False conditions mark the step as Skipped, not Failed." Foreground="{DynamicResource Muted2Brush}" TextWrapping="Wrap"/>
+                                                            <Grid Margin="0,8,0,0">
+                                                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                                <StackPanel><TextBlock x:Name="ConditionTypeLabel" Text="Condition" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="ConditionTypeBox" Height="34" Margin="0,4,0,0"/></StackPanel>
+                                                                <StackPanel Grid.Column="2"><TextBlock x:Name="ConditionExpressionLabel" Text="Expression / selector / text" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ConditionExpressionBox" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Examples: .promo-modal, /checkout, ${role}"/></StackPanel>
+                                                                <StackPanel Grid.Column="4"><TextBlock x:Name="ConditionExpectedLabel" Text="Expected value" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ConditionExpectedBox" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Used by variable equality conditions."/></StackPanel>
+                                                            </Grid>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Expander>
+                                                <Expander x:Name="ControlledRepeatExpander" Header="Controlled repetition (advanced)" Margin="0,10,0,0" IsExpanded="False">
+                                                    <Border Margin="0,6,0,0" Background="{DynamicResource SurfacePanel3Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="9">
+                                                        <StackPanel>
+                                                            <TextBlock x:Name="RepeatHelpText" Text="Repeat this step a bounded number of times. Use Data-driven execution for different data rows; use repetition only for stability or repeated UI checks." Foreground="{DynamicResource Muted2Brush}" TextWrapping="Wrap"/>
+                                                            <Grid Margin="0,8,0,0">
+                                                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                                <StackPanel><TextBlock x:Name="RepeatCountLabel" Text="Iterations (1–20)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="RepeatCountBox" Text="1" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                                <StackPanel Grid.Column="2"><TextBlock x:Name="RepeatDelayLabel" Text="Delay between iterations (ms)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="RepeatDelayBox" Text="0" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                            </Grid>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Expander>
+                                                <Expander x:Name="ApiHelperExpander" Header="API helper (advanced)" Margin="0,10,0,0" IsExpanded="False">
+                                                    <Border Margin="0,6,0,0" Background="{DynamicResource SurfacePanel3Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="9">
+                                                        <StackPanel>
+                                                            <TextBlock x:Name="ApiHelperHelpText" Text="Optional setup/cleanup request. The endpoint must remain inside the project Base URL or allowed domains." Foreground="{DynamicResource Muted2Brush}" TextWrapping="Wrap"/>
+                                                            <Grid Margin="0,8,0,0">
+                                                                <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="105"/></Grid.ColumnDefinitions>
+                                                                <StackPanel><TextBlock x:Name="ApiMethodLabel" Text="Method" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="ApiMethodBox" Height="34" Margin="0,4,0,0"/></StackPanel>
+                                                                <StackPanel Grid.Column="2"><TextBlock x:Name="ApiUrlLabel" Text="URL / relative endpoint" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ApiUrlBox" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Examples: /api/test-data/customer or https://qa.example.com/api/health"/></StackPanel>
+                                                                <StackPanel Grid.Column="4"><TextBlock x:Name="ApiStatusLabel" Text="Expected status" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ApiExpectedStatusBox" Text="200" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                            </Grid>
+                                                            <Grid Margin="0,8,0,0">
+                                                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                                <StackPanel><TextBlock x:Name="ApiContentTypeLabel" Text="Content-Type" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ApiContentTypeBox" Text="application/json" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                                <StackPanel Grid.Column="2"><TextBlock x:Name="ApiHeadersLabel" Text="Headers (one per line: Name=Value)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ApiHeadersBox" Height="62" Margin="0,4,0,0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></StackPanel>
+                                                            </Grid>
+                                                            <TextBlock x:Name="ApiBodyLabel" Text="Request body (supports Data Set variables)" Foreground="{DynamicResource Muted2Brush}" Margin="0,8,0,0"/>
+                                                            <TextBox x:Name="ApiBodyBox" Height="72" Margin="0,4,0,0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Expander>
+                                                <Expander x:Name="SelfHealingExpander" Header="Self-healing intelligence (advanced)" Margin="0,10,0,0" IsExpanded="False">
+                                                    <Border Margin="0,6,0,0" Background="{DynamicResource SurfacePanel3Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="9">
+                                                        <StackPanel>
+                                                            <TextBlock x:Name="SelfHealingHelpText" Text="Advanced mode scores semantic and structural signals, only accepts a clear best match, and can learn the recovered selector. Conservative mode preserves the previous behavior." Foreground="{DynamicResource Muted2Brush}" TextWrapping="Wrap"/>
+                                                            <Grid Margin="0,8,0,0">
+                                                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                                <StackPanel><TextBlock x:Name="HealingModeLabel" Text="Mode" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="HealingModeBox" Height="34" Margin="0,4,0,0"/></StackPanel>
+                                                                <StackPanel Grid.Column="2"><TextBlock x:Name="HealingScoreLabel" Text="Minimum score (0-100)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="HealingMinimumScoreBox" Text="78" Height="34" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                                <CheckBox x:Name="LearnHealedSelectorCheck" Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,0,8" Content="Learn successful selector"/>
+                                                            </Grid>
+                                                            <TextBlock x:Name="SelfHealingSignalsText" Margin="0,7,0,0" Foreground="{DynamicResource TextSubtle4Brush}" TextWrapping="Wrap" Text="Advanced scoring: accessible name, role, tag, label/placeholder/title, visible text and local DOM context. A close second candidate is rejected to avoid unsafe healing."/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Expander>
+                                                <Separator Margin="0,10" Background="{DynamicResource BorderStrongBrush}"/>
+                                                <TextBlock x:Name="BrowserContextLabel" Text="Browser context · tabs/windows &amp; iframe" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" Margin="0,0,0,6"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <StackPanel><TextBlock x:Name="WindowTargetLabel" Text="Window / tab" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="WindowTargetBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2"><TextBlock x:Name="WindowMatchLabel" Text="Title contains" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="WindowMatchBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Used only with TitleContains."/></StackPanel>
+                                                    <StackPanel Grid.Column="4"><TextBlock x:Name="FrameTargetLabel" Text="Frame" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="FrameTargetBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                </Grid>
+                                                <Grid Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <StackPanel><TextBlock x:Name="FrameValueLabel" Text="Frame value" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="FrameValueBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="CSS selector, name/id or zero-based index depending on Frame."/></StackPanel>
+                                                    <CheckBox x:Name="CloseWindowAfterStepCheck" Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,9" Content="Close current tab/window after assertions"/>
+                                                </Grid>
+                                                <Separator Margin="0,10" Background="{DynamicResource BorderStrongBrush}"/>
+                                                <TextBlock x:Name="ShadowDomLabel" Text="Shadow DOM (advanced)" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" Margin="0,0,0,6"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <CheckBox x:Name="ShadowDomCheck" VerticalAlignment="Center" Content="Resolve target inside open Shadow DOM"/>
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBlock x:Name="ShadowCssPathLabel" Text="Shadow CSS path" Foreground="{DynamicResource Muted2Brush}"/>
+                                                        <TextBox x:Name="ShadowCssPathBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Use CSS segments separated by >>>, e.g. my-app >>> qa-panel >>> button.save"/>
+                                                        <TextBlock x:Name="ShadowDomHelpText" Margin="0,4,0,0" Foreground="{DynamicResource TextSubtle4Brush}" TextWrapping="Wrap" Text="Open shadow roots only. Use >>> between each host/root segment. Closed shadow roots remain inaccessible to browser automation."/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </StackPanel>
                                         </Border>
                                         <Grid Grid.Row="6">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="HealingStatusText" Text="Self-healing is conservative: unique semantic matches only. Changes are learned into the step selector profile after a successful recovery." Foreground="#77C9FF" TextWrapping="Wrap" VerticalAlignment="Center"/><Button Grid.Column="1" x:Name="SaveRecoveryButton" Content="Save recovery policy" Style="{StaticResource PrimaryButton}" Click="SaveRecovery_Click"/></Grid>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="HealingStatusText" Text="Self-healing defaults to Conservative. Advanced mode uses scored semantic + structural matching with an ambiguity guard; learned selectors remain optional." Foreground="{DynamicResource AccentLightBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/><Button Grid.Column="1" x:Name="SaveRecoveryButton" Content="Save recovery policy" Style="{StaticResource PrimaryButton}" Click="SaveRecovery_Click"/></Grid>
                                             <DataGrid Grid.Row="2" x:Name="RecoveryStepsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
-                                                <DataGrid.Columns><DataGridTextColumn Header="#" Binding="{Binding Order}" Width="42"/><DataGridTextColumn Header="Step" Binding="{Binding Target}" Width="2*"/><DataGridTextColumn Header="Retries" Binding="{Binding MaxRetries}" Width="70"/><DataGridTextColumn Header="Failure" Binding="{Binding OnFailure}" Width="120"/><DataGridTextColumn Header="Healed" Binding="{Binding HealingCount}" Width="70"/><DataGridTextColumn Header="Selector" Binding="{Binding SelectorProfile.PrimaryDisplay}" Width="2*"/></DataGrid.Columns>
+                                                <DataGrid.Columns><DataGridTextColumn Header="#" Binding="{Binding Order}" Width="42"/><DataGridTextColumn Header="Step" Binding="{Binding Target}" Width="2*"/><DataGridTextColumn Header="Action" Binding="{Binding InteractionDisplay}" Width="140"/><DataGridTextColumn Header="Wait" Binding="{Binding WaitDisplay}" Width="120"/><DataGridTextColumn Header="Browser context" Binding="{Binding BrowserContextDisplay}" Width="180"/><DataGridTextColumn Header="Retries" Binding="{Binding MaxRetries}" Width="70"/><DataGridTextColumn Header="Failure" Binding="{Binding OnFailure}" Width="120"/><DataGridTextColumn Header="Healed" Binding="{Binding HealingCount}" Width="70"/><DataGridTextColumn Header="Selector" Binding="{Binding SelectorProfile.PrimaryDisplay}" Width="2*"/></DataGrid.Columns>
                                             </DataGrid>
                                         </Grid>
                                     </Grid>
@@ -321,7 +462,7 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock x:Name="SuiteRunsTitleText" Text="Suite execution history" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="SuiteRunsHelpText" Text="Execute complete suites sequentially and consolidate all test case results in one offline HTML report." Foreground="#8FA8C0" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="SuiteRunsHelpText" Text="Execute complete suites sequentially and consolidate all test case results in one offline HTML report." Foreground="{DynamicResource Muted4Brush}" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <DataGrid Grid.Row="2" x:Name="SuiteRunsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
                                     <DataGrid.Columns>
@@ -335,7 +476,7 @@
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="SuiteRunsScopeText" Text="Suite orchestration remains web-only and uses the same URL scope and recovery rules as individual runs." Foreground="#7FA4C3" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="SuiteRunsScopeText" Text="Suite orchestration remains web-only and uses the same URL scope and recovery rules as individual runs." Foreground="{DynamicResource TextSubtle2Brush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                     <Button Grid.Column="1" x:Name="OpenSuiteRunFolderButton" Content="Open folder" Click="OpenSuiteRunFolder_Click"/>
                                     <Button Grid.Column="3" x:Name="OpenSuiteRunReportButton" Content="Open HTML report" Click="OpenSuiteRunReport_Click"/>
                                     <Button Grid.Column="5" x:Name="SendSuiteRunButton" Content="✉ Send report" Style="{StaticResource PrimaryButton}" Click="SendSuiteRun_Click"/>
@@ -349,9 +490,9 @@
                                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                     <StackPanel>
                                         <TextBlock x:Name="DeliveryTitleText" Text="Email report delivery" FontSize="18" FontWeight="SemiBold"/>
-                                        <TextBlock x:Name="DeliveryHelpText" Text="Send suite HTML reports and selected QA/Bug PDFs through your organization's SMTP server. Passwords are stored in Windows Credential Manager." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                        <TextBlock x:Name="DeliveryHelpText" Text="Send suite HTML reports and selected QA/Bug PDFs through your organization's SMTP server. Passwords are stored in Windows Credential Manager." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                     </StackPanel>
-                                    <Border Grid.Row="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <Border Grid.Row="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                                         <Grid>
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -365,7 +506,7 @@
                                             <StackPanel Grid.Row="6" Grid.Column="2"><TextBlock Text="Recipients" FontWeight="SemiBold"/><TextBox x:Name="RecipientsBox" Margin="0,5,0,0" TextChanged="DeliveryText_Changed" ToolTip="Separate recipients with comma or semicolon."/></StackPanel>
                                         </Grid>
                                     </Border>
-                                    <Border Grid.Row="4" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <Border Grid.Row="4" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                                         <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="120"/></Grid.RowDefinitions>
                                             <StackPanel Orientation="Horizontal"><CheckBox x:Name="AttachSuiteHtmlCheck" Content="Attach suite HTML" IsChecked="True" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/><CheckBox x:Name="AttachCaseHtmlCheck" Content="Attach individual case HTML reports" Margin="18,0,0,0" Checked="DeliveryEditor_Changed" Unchecked="DeliveryEditor_Changed"/></StackPanel>
                                             <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="PdfAttachmentsLabel" Text="QA/Bug PDF attachments" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" x:Name="AddPdfButton" Content="＋ Add PDF" Click="AddPdf_Click"/><Button Grid.Column="3" x:Name="RemovePdfButton" Content="Remove" Click="RemovePdf_Click"/></Grid>
@@ -373,7 +514,7 @@
                                         </Grid>
                                     </Border>
                                     <Grid Grid.Row="6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock x:Name="DeliveryStatusText" Text="Delivery settings are local to this project." Foreground="#7FA4C3" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="DeliveryStatusText" Text="Delivery settings are local to this project." Foreground="{DynamicResource TextSubtle2Brush}" VerticalAlignment="Center"/>
                                         <Button Grid.Column="1" x:Name="TestEmailButton" Content="Send test email" Click="TestEmail_Click"/>
                                         <Button Grid.Column="3" x:Name="SaveDeliveryButton" Content="Save delivery settings" Style="{StaticResource PrimaryButton}" Click="SaveDelivery_Click"/>
                                     </Grid>
@@ -386,7 +527,7 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock x:Name="RunsTitleText" Text="Web automation runs" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="RunsHelpText" Text="Execution history is immutable and stored locally with step evidence and an offline HTML report." Foreground="#8FA8C0" Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="RunsHelpText" Text="Execution history is immutable and stored locally with step evidence and an offline HTML report." Foreground="{DynamicResource Muted4Brush}" Margin="0,3,0,0"/>
                                 </StackPanel>
                                 <DataGrid Grid.Row="2" x:Name="RunsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single">
                                     <DataGrid.Columns>
@@ -400,7 +541,7 @@
                                 </DataGrid>
                                 <Grid Grid.Row="4">
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="RunsScopeText" Text="Phase 9 execution remains web-only and can use project environments while respecting URL scope and allowed domains." Foreground="#7FA4C3" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="RunsScopeText" Text="Phase 9 execution remains web-only and can use project environments while respecting URL scope and allowed domains." Foreground="{DynamicResource TextSubtle2Brush}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" x:Name="OpenRunFolderButton" Content="Open run folder" Click="OpenRunFolder_Click"/>
                                     <Button Grid.Column="3" x:Name="OpenRunReportButton" Content="Open HTML report" Style="{StaticResource PrimaryButton}" Click="OpenRunReport_Click"/>
                                 </Grid>
@@ -412,30 +553,31 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock x:Name="InstrumentationTitleText" Text="DOM instrumentation and selector intelligence" FontSize="18" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="InstrumentationHelpText" Text="QAFlow enriches recorded web actions with DOM metadata and ranks stable selectors. Typed values are never collected." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="InstrumentationHelpText" Text="QAFlow enriches recorded web actions with DOM metadata and ranks stable selectors. Typed values are never collected." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                 </StackPanel>
-                                <Border Grid.Row="2" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                        <StackPanel><TextBlock Text="LOCAL BRIDGE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="BridgeStatusText" Text="Checking..." FontSize="16" FontWeight="SemiBold"/></StackPanel>
-                                        <StackPanel Grid.Column="1"><TextBlock Text="EXTENSION" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="ExtensionStatusText" Text="Not connected" FontSize="16" FontWeight="SemiBold"/></StackPanel>
-                                        <StackPanel Grid.Column="2"><TextBlock Text="SELECTOR POLICY" Foreground="#7890A8" FontSize="10"/><TextBlock Text="Stable DOM first" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                                        <StackPanel><TextBlock Text="LOCAL BRIDGE" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="BridgeStatusText" Text="Checking..." FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                                        <StackPanel Grid.Column="1"><TextBlock Text="EXTENSION" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="ExtensionStatusText" Text="Not connected" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="SELECTOR POLICY" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock Text="Stable DOM first" FontSize="16" FontWeight="SemiBold"/></StackPanel>
                                     </Grid>
                                 </Border>
-                                <Border Grid.Row="4" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <Border Grid.Row="4" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                                     <StackPanel>
-                                        <TextBlock x:Name="InstrumentationStepsTitle" Text="Connect Chrome or Edge" FontSize="15" FontWeight="SemiBold"/>
-                                        <TextBlock x:Name="InstrumentationStepsText" Margin="0,8,0,0" Foreground="#B7C8D9" TextWrapping="Wrap" Text="1. Open the browser Extensions page.&#10;2. Enable Developer mode.&#10;3. Choose Load unpacked and select the QAFlow WebInstrumentationExtension folder.&#10;4. Keep QAFlow in Hybrid Testing mode with a valid Base URL.&#10;&#10;The extension communicates only with 127.0.0.1 on this PC and only sends DOM metadata for URLs inside the configured automation scope."/>
-                                        <Border Margin="0,14,0,0" Background="#0C141F" BorderBrush="#263A50" BorderThickness="1" CornerRadius="6" Padding="10">
-                                            <TextBlock x:Name="SelectorPolicyText" Text="Selector priority: data-testid → stable id → name → aria-label → role + accessible name → CSS → XPath. UI Automation remains a fallback only." Foreground="#77C9FF" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="InstrumentationStepsTitle" Text="Connect browser instrumentation" FontSize="15" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="InstrumentationStepsText" Margin="0,8,0,0" Foreground="{DynamicResource TextSubtleBrush}" TextWrapping="Wrap" Text="Chrome/Edge: open Extensions, enable Developer mode and load WebInstrumentationExtension.&#10;Firefox: open about:debugging, choose This Firefox → Load Temporary Add-on and select WebInstrumentationExtensionFirefox/manifest.json.&#10;&#10;Keep QAFlow in Hybrid Testing with a valid Base URL. Instrumentation communicates only with 127.0.0.1 and sends DOM metadata only inside the configured scope; typed values are never collected."/>
+                                        <Border Margin="0,14,0,0" Background="{DynamicResource SurfacePanel2Brush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
+                                            <TextBlock x:Name="SelectorPolicyText" Text="Selector priority: data-testid → stable id → name → aria-label → role + accessible name → CSS → XPath. UI Automation remains a fallback only." Foreground="{DynamicResource AccentLightBrush}" TextWrapping="Wrap"/>
                                         </Border>
                                     </StackPanel>
                                 </Border>
                                 <Grid Grid.Row="6">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="InstrumentationPrivacyText" Text="No field values are captured. Recorder Only disables DOM event acceptance." Foreground="#7FA4C3" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" x:Name="OpenExtensionFolderButton" Content="Open extension folder" Click="OpenExtensionFolder_Click"/>
-                                    <Button Grid.Column="3" x:Name="RefreshInstrumentationButton" Content="Refresh status" Style="{StaticResource PrimaryButton}" Click="RefreshInstrumentation_Click"/>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="InstrumentationPrivacyText" Text="No field values are captured. Recorder Only disables DOM event acceptance." Foreground="{DynamicResource TextSubtle2Brush}" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" x:Name="OpenExtensionFolderButton" Content="Chrome / Edge" Click="OpenExtensionFolder_Click" ToolTip="Open Chromium instrumentation extension folder"/>
+                                    <Button Grid.Column="3" x:Name="OpenFirefoxExtensionFolderButton" Content="Firefox" Click="OpenFirefoxExtensionFolder_Click" ToolTip="Open Firefox instrumentation extension folder"/>
+                                    <Button Grid.Column="5" x:Name="RefreshInstrumentationButton" Content="Refresh status" Style="{StaticResource PrimaryButton}" Click="RefreshInstrumentation_Click"/>
                                 </Grid>
                             </Grid>
                         </TabItem>
@@ -443,23 +585,23 @@
                         <TabItem x:Name="EnvironmentsTab" Header="Environments &amp; Scheduling">
                             <Grid Margin="10">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                <Border Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                        <StackPanel><TextBlock x:Name="EnvironmentsTitleText" Text="Web environments" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="EnvironmentsHelpText" Text="Reuse the same suites against different web environments without duplicating test cases." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <StackPanel><TextBlock x:Name="EnvironmentsTitleText" Text="Web environments" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="EnvironmentsHelpText" Text="Reuse the same suites against different web environments without duplicating test cases." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
                                         <DataGrid Grid.Row="2" x:Name="EnvironmentsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="EnvironmentsGrid_SelectionChanged">
                                             <DataGrid.Columns><DataGridTextColumn Header="Environment" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="Base URL" Binding="{Binding BaseUrl}" Width="2*"/><DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="80"/><DataGridCheckBoxColumn Header="Default" Binding="{Binding IsDefault}" Width="65"/></DataGrid.Columns>
                                         </DataGrid>
                                         <Grid Grid.Row="4">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Name" Foreground="#90A6BC"/><TextBox x:Name="EnvironmentNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock Text="Base URL" Foreground="#90A6BC"/><TextBox x:Name="EnvironmentBaseUrlBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel><TextBlock Text="Name" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="EnvironmentNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Base URL" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="EnvironmentBaseUrlBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
                                             </Grid>
                                             <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Allowed domains" Foreground="#90A6BC"/><TextBox x:Name="EnvironmentDomainsBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Comma-separated trusted domains."/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock Text="Browser" Foreground="#90A6BC"/><ComboBox x:Name="EnvironmentBrowserBox" Height="36" Margin="0,4,0,0"><ComboBoxItem Content="Chrome"/><ComboBoxItem Content="Edge"/></ComboBox></StackPanel>
-                                                <StackPanel Grid.Column="4"><TextBlock Text="Default test data" Foreground="#90A6BC"/><ComboBox x:Name="EnvironmentDataSetBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                                <StackPanel><TextBlock Text="Allowed domains" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="EnvironmentDomainsBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Comma-separated trusted domains."/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Browser" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="EnvironmentBrowserBox" Height="36" Margin="0,4,0,0"><ComboBoxItem Content="Chrome"/><ComboBoxItem Content="Edge"/><ComboBoxItem Content="Firefox"/></ComboBox></StackPanel>
+                                                <StackPanel Grid.Column="4"><TextBlock Text="Default test data" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="EnvironmentDataSetBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
                                             </Grid>
                                             <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                                 <CheckBox x:Name="EnvironmentDefaultCheck" Content="Default environment" VerticalAlignment="Center"/>
@@ -470,27 +612,31 @@
                                         </Grid>
                                     </Grid>
                                 </Border>
-                                <Border Grid.Column="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Border Grid.Column="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                     <Grid>
                                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                        <StackPanel><TextBlock x:Name="SchedulingTitleText" Text="Scheduled suite runs" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="SchedulingHelpText" Text="Register recurring web regressions in Windows Task Scheduler. Scheduled runs use QAFlow's headless suite entry point." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+                                        <StackPanel><TextBlock x:Name="SchedulingTitleText" Text="Scheduled suite runs" FontSize="16" FontWeight="SemiBold"/><TextBlock x:Name="SchedulingHelpText" Text="Register recurring web regressions in Windows Task Scheduler. Scheduled runs use QAFlow's headless suite entry point." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
                                         <DataGrid Grid.Row="2" x:Name="SchedulesGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="SchedulesGrid_SelectionChanged">
                                             <DataGrid.Columns><DataGridTextColumn Header="Schedule" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="Frequency" Binding="{Binding Frequency}" Width="80"/><DataGridTextColumn Header="Time" Binding="{Binding TimeOfDay}" Width="60"/><DataGridCheckBoxColumn Header="Enabled" Binding="{Binding Enabled}" Width="65"/><DataGridTextColumn Header="Task" Binding="{Binding TaskName}" Width="1.4*"/></DataGrid.Columns>
                                         </DataGrid>
                                         <Grid Grid.Row="4">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Name" Foreground="#90A6BC"/><TextBox x:Name="ScheduleNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock Text="Suite" Foreground="#90A6BC"/><ComboBox x:Name="ScheduleSuiteBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                                <StackPanel><TextBlock Text="Name" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ScheduleNameBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Suite" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="ScheduleSuiteBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
                                             </Grid>
                                             <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Environment" Foreground="#90A6BC"/><ComboBox x:Name="ScheduleEnvironmentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
-                                                <StackPanel Grid.Column="2"><TextBlock Text="Frequency" Foreground="#90A6BC"/><ComboBox x:Name="ScheduleFrequencyBox" Height="36" Margin="0,4,0,0"/></StackPanel>
-                                                <StackPanel Grid.Column="4"><TextBlock Text="Time (HH:mm)" Foreground="#90A6BC"/><TextBox x:Name="ScheduleTimeBox" Text="22:00" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel><TextBlock Text="Environment" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="ScheduleEnvironmentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock Text="Frequency" Foreground="{DynamicResource Muted2Brush}"/><ComboBox x:Name="ScheduleFrequencyBox" Height="36" Margin="0,4,0,0"/></StackPanel>
+                                                <StackPanel Grid.Column="4"><TextBlock Text="Time (HH:mm)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ScheduleTimeBox" Text="22:00" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
                                             </Grid>
                                             <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <StackPanel><TextBlock Text="Weekly days (MON,TUE...)" Foreground="#90A6BC"/><TextBox x:Name="ScheduleDaysBox" Text="MON" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom"><CheckBox x:Name="ScheduleEnabledCheck" Content="Enabled" IsChecked="True" Margin="0,0,10,8"/><CheckBox x:Name="ScheduleSendCheck" Content="Send report" IsChecked="True" Margin="0,0,0,8"/></StackPanel>
+                                                <StackPanel><TextBlock Text="Weekly days (MON,TUE...)" Foreground="{DynamicResource Muted2Brush}"/><TextBox x:Name="ScheduleDaysBox" Text="MON" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center"/></StackPanel>
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                                                    <CheckBox x:Name="ScheduleEnabledCheck" Content="Enabled" IsChecked="True" Margin="0,0,0,4"/>
+                                                    <CheckBox x:Name="ScheduleSendCheck" Content="Send report" IsChecked="True" Margin="0,0,0,4"/>
+                                                    <CheckBox x:Name="ScheduleBrowserHeadlessCheck" Content="Browser headless (advanced)" ToolTip="Run Chrome, Edge or Firefox without a visible browser window."/>
+                                                </StackPanel>
                                                 <Button Grid.Column="4" x:Name="SaveScheduleButton" Content="Save" Click="SaveSchedule_Click" VerticalAlignment="Bottom"/>
                                                 <Button Grid.Column="6" x:Name="RegisterScheduleButton" Content="Register in Windows" Style="{StaticResource PrimaryButton}" Click="RegisterSchedule_Click" VerticalAlignment="Bottom"/>
                                                 <Button Grid.Column="8" x:Name="DeleteScheduleButton" Content="Delete" Style="{StaticResource DangerButton}" Click="DeleteSchedule_Click" VerticalAlignment="Bottom"/>
@@ -506,23 +652,28 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock x:Name="QueueTitleText" Text="Run queue &amp; browser matrix" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="QueueHelpText" Text="Queue the selected suite for Chrome, Edge or both. QAFlow runs independent web jobs in parallel with a controlled concurrency limit." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="QueueHelpText" Text="Queue the selected suite for Chrome, Edge, Firefox or any combination. QAFlow runs independent web jobs in parallel with a controlled concurrency limit." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button x:Name="BrowserPreflightButton" Content="Browser preflight" Click="BrowserPreflight_Click" Padding="12,5"/>
+                                        <TextBlock x:Name="BrowserPreflightStateText" Text="Check local browser availability before running the matrix." Foreground="{DynamicResource Muted3Brush}" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
                                 </StackPanel>
-                                <Border Grid.Row="2" Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="10">
+                                <Border Grid.Row="2" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                     <Grid>
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <TextBlock x:Name="QueueSuiteLabel" Text="Selected suite" Foreground="#90A6BC"/>
+                                            <TextBlock x:Name="QueueSuiteLabel" Text="Selected suite" Foreground="{DynamicResource Muted2Brush}"/>
                                             <TextBlock x:Name="QueueSuiteText" Text="—" FontWeight="SemiBold" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock x:Name="QueueEnvironmentLabel" Text="Environment" Foreground="#90A6BC"/>
+                                            <TextBlock x:Name="QueueEnvironmentLabel" Text="Environment" Foreground="{DynamicResource Muted2Brush}"/>
                                             <ComboBox x:Name="QueueEnvironmentBox" Height="36" Margin="0,4,0,0" DisplayMemberPath="DisplayName"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,0,7"><CheckBox x:Name="QueueChromeCheck" Content="Chrome" IsChecked="True"/></StackPanel>
                                         <StackPanel Grid.Column="6" VerticalAlignment="Bottom" Margin="0,0,0,7"><CheckBox x:Name="QueueEdgeCheck" Content="Edge" IsChecked="True"/></StackPanel>
-                                        <StackPanel Grid.Column="8">
-                                            <TextBlock x:Name="ConcurrencyLabel" Text="Parallel" Foreground="#90A6BC"/>
+                                        <StackPanel Grid.Column="8" VerticalAlignment="Bottom" Margin="0,0,0,7"><CheckBox x:Name="QueueFirefoxCheck" Content="Firefox"/></StackPanel>
+                                        <StackPanel Grid.Column="10">
+                                            <TextBlock x:Name="ConcurrencyLabel" Text="Parallel" Foreground="{DynamicResource Muted2Brush}"/>
                                             <ComboBox x:Name="ConcurrencyBox" Height="36" Margin="0,4,0,0"><ComboBoxItem Content="1"/><ComboBoxItem Content="2" IsSelected="True"/><ComboBoxItem Content="3"/><ComboBoxItem Content="4"/></ComboBox>
                                         </StackPanel>
                                     </Grid>
@@ -532,7 +683,8 @@
                                         <DataGridTextColumn Header="Batch" Binding="{Binding BatchDisplay}" Width="80"/>
                                         <DataGridTextColumn Header="Suite" Binding="{Binding SuiteName}" Width="1.5*"/>
                                         <DataGridTextColumn Header="Environment" Binding="{Binding EnvironmentName}" Width="120"/>
-                                        <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="90"/>
+                                        <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="82"/>
+                                        <DataGridTextColumn Header="Version" Binding="{Binding BrowserVersion}" Width="110"/>
                                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="105"/>
                                         <DataGridTextColumn Header="Created" Binding="{Binding CreatedDisplay}" Width="145"/>
                                         <DataGridTextColumn Header="Duration" Binding="{Binding DurationDisplay}" Width="90"/>
@@ -542,8 +694,11 @@
                                 <Grid Grid.Row="6">
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <CheckBox x:Name="StopBatchOnFailureCheck" Content="Stop remaining matrix jobs when one browser fails"/>
-                                        <TextBlock x:Name="QueueStateText" Text="Queue idle" Foreground="#7890A8" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                        <StackPanel>
+                                            <CheckBox x:Name="StopBatchOnFailureCheck" Content="Stop remaining matrix jobs when one browser fails"/>
+                                            <CheckBox x:Name="QueueBrowserHeadlessCheck" Content="Browser headless (advanced)" Margin="0,5,0,0" ToolTip="Run Chrome, Edge or Firefox without opening visible browser windows."/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="QueueStateText" Text="Queue idle" Foreground="{DynamicResource Muted3Brush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" x:Name="QueueMatrixButton" Content="＋ Queue browser matrix" Click="QueueMatrix_Click"/>
                                     <Button Grid.Column="3" x:Name="StartQueueButton" Content="▶ Start queue" Style="{StaticResource PrimaryButton}" Click="StartQueue_Click"/>
@@ -558,14 +713,14 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock x:Name="QualityTitleText" Text="Quality intelligence" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="QualityHelpText" Text="Use execution history to identify flaky tests, recurring failure patterns and quality trends without changing test logic." Foreground="#8FA8C0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="QualityHelpText" Text="Use execution history to identify flaky tests, recurring failure patterns and quality trends without changing test logic." Foreground="{DynamicResource Muted4Brush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
                                 <Grid Grid.Row="2">
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                    <Border Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityPassLabel" Text="HISTORICAL PASS RATE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityPassText" Text="0%" FontSize="24" FontWeight="SemiBold" Foreground="#3DDC97"/></StackPanel></Border>
-                                    <Border Grid.Column="2" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityFlakyLabel" Text="FLAKY TESTS" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityFlakyText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="#F4B860"/></StackPanel></Border>
-                                    <Border Grid.Column="4" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityFailuresLabel" Text="RECURRING FAILURES" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityFailuresText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="#FF6577"/></StackPanel></Border>
-                                    <Border Grid.Column="6" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityRunsLabel" Text="SUITE RUNS" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="QualityRunsText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="#77C9FF"/></StackPanel></Border>
+                                    <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityPassLabel" Text="HISTORICAL PASS RATE" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="QualityPassText" Text="0%" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource GreenBrush}"/></StackPanel></Border>
+                                    <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityFlakyLabel" Text="FLAKY TESTS" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="QualityFlakyText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource AmberBrush}"/></StackPanel></Border>
+                                    <Border Grid.Column="4" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityFailuresLabel" Text="RECURRING FAILURES" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="QualityFailuresText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource RedBrush}"/></StackPanel></Border>
+                                    <Border Grid.Column="6" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="8" Padding="12"><StackPanel><TextBlock x:Name="QualityRunsLabel" Text="SUITE RUNS" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="QualityRunsText" Text="0" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource AccentLightBrush}"/></StackPanel></Border>
                                 </Grid>
                                 <Grid Grid.Row="4">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="1.15*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="1.2*"/></Grid.ColumnDefinitions>
@@ -581,7 +736,7 @@
                                                 <DataGridTextColumn Header="Stability" Binding="{Binding StabilityScore, StringFormat={}{0}%}" Width="70"/>
                                             </DataGrid.Columns>
                                         </DataGrid>
-                                        <TextBlock Grid.Row="4" x:Name="StabilityHintText" Text="Flaky classification requires both successful and unsuccessful historical outcomes; QAFlow never changes the test automatically." Foreground="#7FA4C3" TextWrapping="Wrap"/>
+                                        <TextBlock Grid.Row="4" x:Name="StabilityHintText" Text="Flaky classification requires both successful and unsuccessful historical outcomes; QAFlow never changes the test automatically." Foreground="{DynamicResource TextSubtle2Brush}" TextWrapping="Wrap"/>
                                     </Grid>
                                     <Grid Grid.Column="2"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="6"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="135"/></Grid.RowDefinitions>
                                         <TextBlock x:Name="FailureClustersTitleText" Text="Failure clusters" FontWeight="SemiBold"/>
@@ -607,7 +762,7 @@
                                 </Grid>
                                 <Grid Grid.Row="6">
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="QualityStateText" Text="Select a project to analyze its local automation history." Foreground="#7890A8" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="QualityStateText" Text="Select a project to analyze its local automation history." Foreground="{DynamicResource Muted3Brush}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" x:Name="RefreshQualityButton" Content="Refresh" Click="RefreshQuality_Click"/>
                                     <Button Grid.Column="3" x:Name="ExportQualityButton" Content="Export HTML" Click="ExportQuality_Click"/>
                                     <Button Grid.Column="5" x:Name="RerunFailedButton" Content="↻ Rerun failed cases" Style="{StaticResource PrimaryButton}" Click="RerunFailed_Click" IsEnabled="False"/>
@@ -622,7 +777,7 @@
                                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                                     <StackPanel>
                                         <TextBlock x:Name="RecordedSessionsHelpText" Text="Convert finished Recorder sessions into draft web test cases." FontWeight="SemiBold"/>
-                                        <TextBlock x:Name="RecordedSessionsScopeText" Text="Only activity inside the project Base URL becomes an automation candidate." Foreground="#7FA4C3" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                        <TextBlock x:Name="RecordedSessionsScopeText" Text="Only activity inside the project Base URL becomes an automation candidate." Foreground="{DynamicResource TextSubtle2Brush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                     </StackPanel>
                                     <DataGrid Grid.Row="2" x:Name="RecordedSessionsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="RecordedSessionsGrid_SelectionChanged">
                                         <DataGrid.Columns>
@@ -634,26 +789,26 @@
                                 </Grid>
                                 <Grid Grid.Column="2">
                                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                    <Border Background="#101925" BorderBrush="#263A50" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                         <Grid>
                                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                             <StackPanel>
-                                                <TextBlock x:Name="TargetSuiteLabel" Text="Target suite" Foreground="#90A6BC"/>
+                                                <TextBlock x:Name="TargetSuiteLabel" Text="Target suite" Foreground="{DynamicResource Muted2Brush}"/>
                                                 <ComboBox x:Name="ConversionSuiteBox" Height="38" Margin="0,4,0,0" DisplayMemberPath="DisplayName" SelectionChanged="ConversionSuiteBox_SelectionChanged"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock x:Name="ConversionNameLabel" Text="Test case name" Foreground="#90A6BC"/>
+                                                <TextBlock x:Name="ConversionNameLabel" Text="Test case name" Foreground="{DynamicResource Muted2Brush}"/>
                                                 <TextBox x:Name="ConversionNameBox" Height="38" Margin="0,4,0,0" VerticalContentAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
-                                    <Border Grid.Row="2" Background="#0E1724" BorderBrush="#28435F" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderAltBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                         <Grid>
                                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                            <StackPanel><TextBlock Text="RECORDED" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewTotalText" Text="0" FontSize="20" FontWeight="SemiBold"/></StackPanel>
-                                            <StackPanel Grid.Column="1"><TextBlock x:Name="PreviewWebLabel" Text="WEB IN SCOPE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewWebText" Text="0" FontSize="20" FontWeight="SemiBold" Foreground="#3DDC97"/></StackPanel>
-                                            <StackPanel Grid.Column="2"><TextBlock x:Name="PreviewManualLabel" Text="MANUAL / EVIDENCE" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewManualText" Text="0" FontSize="20" FontWeight="SemiBold" Foreground="#F4B860"/></StackPanel>
-                                            <StackPanel Grid.Column="3"><TextBlock x:Name="PreviewConfidenceLabel" Text="READINESS" Foreground="#7890A8" FontSize="10"/><TextBlock x:Name="PreviewConfidenceText" Text="0%" FontSize="20" FontWeight="SemiBold" Foreground="#77C9FF"/></StackPanel>
+                                            <StackPanel><TextBlock Text="RECORDED" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="PreviewTotalText" Text="0" FontSize="20" FontWeight="SemiBold"/></StackPanel>
+                                            <StackPanel Grid.Column="1"><TextBlock x:Name="PreviewWebLabel" Text="WEB IN SCOPE" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="PreviewWebText" Text="0" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource GreenBrush}"/></StackPanel>
+                                            <StackPanel Grid.Column="2"><TextBlock x:Name="PreviewManualLabel" Text="MANUAL / EVIDENCE" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="PreviewManualText" Text="0" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource AmberBrush}"/></StackPanel>
+                                            <StackPanel Grid.Column="3"><TextBlock x:Name="PreviewConfidenceLabel" Text="READINESS" Foreground="{DynamicResource Muted3Brush}" FontSize="10"/><TextBlock x:Name="PreviewConfidenceText" Text="0%" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource AccentLightBrush}"/></StackPanel>
                                         </Grid>
                                     </Border>
                                     <DataGrid Grid.Row="4" x:Name="ConversionPreviewGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
@@ -669,7 +824,7 @@
                                     </DataGrid>
                                     <Grid Grid.Row="6">
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock x:Name="ConversionHintText" Text="Phase 9 keeps data-driven execution, secure secrets, suite orchestration and adds reusable environments and scheduled runs." Foreground="#7FA4C3" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="ConversionHintText" Text="Phase 9 keeps data-driven execution, secure secrets, suite orchestration and adds reusable environments and scheduled runs." Foreground="{DynamicResource TextSubtle2Brush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                         <Button Grid.Column="1" x:Name="ConvertSessionButton" Content="Convert to Test Case" Style="{StaticResource PrimaryButton}" Padding="16,9" Click="ConvertSession_Click" IsEnabled="False"/>
                                     </Grid>
                                 </Grid>
@@ -682,7 +837,7 @@
 
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <TextBlock x:Name="StatusText" Text="Local workspace · Phase 11 quality intelligence enabled · web automation only · desktop automation disabled" Foreground="#7890A8" VerticalAlignment="Center"/>
+            <TextBlock x:Name="StatusText" Text="Local workspace · Phase 11 quality intelligence enabled · web automation only · desktop automation disabled" Foreground="{DynamicResource Muted3Brush}" VerticalAlignment="Center"/>
             <Button Grid.Column="1" x:Name="SaveButton" Content="Save workspace" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
             <Button Grid.Column="3" x:Name="CloseButton" Content="Close" Click="Close_Click"/>
         </Grid>

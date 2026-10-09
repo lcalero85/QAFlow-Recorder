@@ -43,6 +43,7 @@ public partial class EvidenceTimelineWindow : Window
         ((ComboBoxItem)FilterBox.Items[2]).Content = es ? "Anotaciones" : "Annotations";
         ((ComboBoxItem)FilterBox.Items[3]).Content = es ? "Capturas manuales" : "Manual captures";
         ((ComboBoxItem)FilterBox.Items[4]).Content = es ? "Bugs" : "Bugs";
+        ((ComboBoxItem)FilterBox.Items[5]).Content = es ? "Marcadores" : "Bookmarks";
     }
 
     private void FilterBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -60,6 +61,7 @@ public partial class EvidenceTimelineWindow : Window
             2 => q.Where(x => x.Kind == ScreenshotKind.Annotation),
             3 => q.Where(x => x.Kind is ScreenshotKind.Manual or ScreenshotKind.Periodic or ScreenshotKind.Final),
             4 => q.Where(x => x.Kind is ScreenshotKind.BugOriginal or ScreenshotKind.BugMarked),
+            5 => q.Where(x => x.TargetTitle.StartsWith("★", StringComparison.Ordinal)),
             _ => q
         };
         TimelineList.ItemsSource = q.ToList();

@@ -20,12 +20,23 @@ public partial class App : Application
             var sendReport = true;
             var sendIndex = Array.FindIndex(args, a => a.Equals("--send-report", StringComparison.OrdinalIgnoreCase));
             if (sendIndex >= 0 && args.Length > sendIndex + 1 && bool.TryParse(args[sendIndex + 1], out var parsedSend)) sendReport = parsedSend;
+            var browserHeadless = false;
+            var browserHeadlessIndex = Array.FindIndex(args, a => a.Equals("--browser-headless", StringComparison.OrdinalIgnoreCase));
+            if (browserHeadlessIndex >= 0)
+            {
+                browserHeadless = browserHeadlessIndex + 1 >= args.Length || !bool.TryParse(args[browserHeadlessIndex + 1], out var parsedBrowserHeadless) || parsedBrowserHeadless;
+            }
+            // Backward compatibility: --headless continues to mean non-interactive QAFlow execution.
+            // Browser headless mode is opt-in through --browser-headless.
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            var exitCode = await new AutomationHeadlessSuiteRunner().RunAsync(projectId, suiteId, environmentId, sendReport, default, browserOverride);
+            var exitCode = await new AutomationHeadlessSuiteRunner().RunAsync(projectId, suiteId, environmentId, sendReport, default, browserOverride, browserHeadless);
             Environment.ExitCode = exitCode;
             Shutdown(exitCode);
             return;
         }
+
+        var startupSettings = await new SessionStore().LoadSettingsAsync();
+        ThemeManager.ApplyTheme(startupSettings.UiTheme);
 
         var main = new MainWindow();
         MainWindow = main;

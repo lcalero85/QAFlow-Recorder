@@ -74,6 +74,8 @@ public static class VisualBaselineService
         return [];
     }
 
+    public static double CompareEvidenceFiles(string a, string b) => CompareImages(a, b);
+
     private static double CompareImages(string a, string b)
     {
         try

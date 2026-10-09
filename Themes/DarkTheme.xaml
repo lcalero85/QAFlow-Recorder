@@ -25,6 +25,52 @@
     <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}"/>
     <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource Amber}"/>
     <SolidColorBrush x:Key="RedBrush" Color="{StaticResource Red}"/>
+    <SolidColorBrush x:Key="WarningTextBrush" Color="#E1AD62"/>
+    <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#351820"/>
+    <SolidColorBrush x:Key="DangerBorderBrush" Color="#6C2B37"/>
+    <SolidColorBrush x:Key="DangerTextBrush" Color="#FFB4B9"/>
+    <SolidColorBrush x:Key="DangerButtonSurfaceBrush" Color="#4A1D24"/>
+    <SolidColorBrush x:Key="DangerButtonBorderBrush" Color="#8C303C"/>
+    <SolidColorBrush x:Key="DangerButtonTextBrush" Color="#FFD7DC"/>
+    <SolidColorBrush x:Key="RecordingOverlayBrush" Color="#F20D131D"/>
+    <SolidColorBrush x:Key="MarkupOverlayBrush" Color="#D9222B36"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#0A1019"/>
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#101925"/>
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="#111A27"/>
+    <SolidColorBrush x:Key="SurfaceDeepBrush" Color="#0D131D"/>
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="#263A50"/>
+    <SolidColorBrush x:Key="AccentBorderBrush" Color="#31577B"/>
+    <SolidColorBrush x:Key="Muted2Brush" Color="#90A6BC"/>
+    <SolidColorBrush x:Key="Muted3Brush" Color="#7890A8"/>
+    <SolidColorBrush x:Key="Muted4Brush" Color="#8FA8C0"/>
+    <SolidColorBrush x:Key="GlassHighlightBrush" Color="#17263A"/>
+    <SolidColorBrush x:Key="SurfacePanelBrush" Color="#0E1724"/>
+    <SolidColorBrush x:Key="SurfacePanel2Brush" Color="#0C141F"/>
+    <SolidColorBrush x:Key="SurfacePanel3Brush" Color="#0A121C"/>
+    <SolidColorBrush x:Key="SurfaceAccentBrush" Color="#102638"/>
+    <SolidColorBrush x:Key="BorderAltBrush" Color="#28435F"/>
+    <SolidColorBrush x:Key="TextSubtleBrush" Color="#91A7BF"/>
+    <SolidColorBrush x:Key="TextSubtle2Brush" Color="#7FA4C3"/>
+    <SolidColorBrush x:Key="TextSubtle3Brush" Color="#7F97B0"/>
+    <SolidColorBrush x:Key="TextSubtle4Brush" Color="#6F8AA4"/>
+    <SolidColorBrush x:Key="TextBrightBrush" Color="#D8E7F5"/>
+    <SolidColorBrush x:Key="AccentLightBrush" Color="#77C9FF"/>
+    <SolidColorBrush x:Key="SurfaceExact1Brush" Color="#0E1420"/>
+    <SolidColorBrush x:Key="SurfaceExact2Brush" Color="#0D1622"/>
+    <SolidColorBrush x:Key="SurfaceExact3Brush" Color="#0F1723"/>
+    <SolidColorBrush x:Key="SurfaceExact4Brush" Color="#121C2A"/>
+    <SolidColorBrush x:Key="SurfaceExact5Brush" Color="#20262F"/>
+    <SolidColorBrush x:Key="SurfaceExact6Brush" Color="#22354A"/>
+    <SolidColorBrush x:Key="SurfaceExact7Brush" Color="#26384E"/>
+    <SolidColorBrush x:Key="BorderExact1Brush" Color="#2A4058"/>
+    <SolidColorBrush x:Key="BorderExact2Brush" Color="#284A68"/>
+    <SolidColorBrush x:Key="BorderExact3Brush" Color="#34465E"/>
+    <SolidColorBrush x:Key="MutedExact1Brush" Color="#7E91A8"/>
+    <SolidColorBrush x:Key="MutedExact2Brush" Color="#7F93AA"/>
+    <SolidColorBrush x:Key="MutedExact3Brush" Color="#8197AF"/>
+    <SolidColorBrush x:Key="MutedExact4Brush" Color="#7F95AC"/>
+    <SolidColorBrush x:Key="TextExact1Brush" Color="#BFD0E4"/>
+    <SolidColorBrush x:Key="TextExact2Brush" Color="#DCE8F5"/>
 
 
     <Style TargetType="ToolTip">
@@ -43,11 +89,16 @@
         <Setter Property="Background" Value="{StaticResource Bg0Brush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
     </Style>
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
     </Style>
     <Style TargetType="TextBox">
+        <Setter Property="MinHeight" Value="36"/>
         <Setter Property="Background" Value="#111A27"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="BorderBrush" Value="#2B3E54"/><Setter Property="CaretBrush" Value="White"/>
         <Setter Property="Padding" Value="12,0"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="SelectionBrush" Value="#326EA8"/><Setter Property="SelectionOpacity" Value="0.65"/>
@@ -182,6 +233,8 @@
         <Setter Property="Foreground" Value="#D7E2EE"/>
     </Style>
     <Style TargetType="Button">
+        <Setter Property="MinHeight" Value="34"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Background" Value="#182436"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/><Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="13,8"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontWeight" Value="SemiBold"/>
@@ -193,6 +246,7 @@
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter TargetName="B" Property="BorderThickness" Value="2"/></Trigger>
                         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#22334B"/></Trigger>
                         <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
                     </ControlTemplate.Triggers>
@@ -217,7 +271,32 @@
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="#47212A"/><Setter Property="BorderBrush" Value="#753441"/><Setter Property="Foreground" Value="#FFDDE2"/>
     </Style>
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="{DynamicResource Bg1Brush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Margin" Value="0,1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource Bg3Brush}"/></Trigger>
+            <Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource AccentBorderBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/></Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style TargetType="PasswordBox">
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Background" Value="{DynamicResource Bg2Brush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="Padding" Value="10,7"/>
+    </Style>
     <Style TargetType="DataGrid">
+        <Setter Property="RowHeight" Value="34"/>
+        <Setter Property="ColumnHeaderHeight" Value="36"/>
         <Setter Property="Background" Value="{StaticResource Bg1Brush}"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/><Setter Property="GridLinesVisibility" Value="Horizontal"/>
         <Setter Property="HorizontalGridLinesBrush" Value="#1E2C3E"/><Setter Property="RowBackground" Value="#0F1723"/>

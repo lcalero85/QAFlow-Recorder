@@ -1,26 +1,22 @@
-# QAFlow Recorder — Browser Extension
+# QAFlow Browser Extension 1.0
 
-Standalone Chrome/Edge Manifest V3 edition of QAFlow Recorder for web QA sessions.
+Extensión Manifest V3 para Chrome y Edge orientada a documentación QA dentro del navegador.
 
-## Included browser features
-- Start, pause and finish web QA sessions.
-- Capture clicks, inputs (values are not stored), selects, submits and SPA navigations.
-- DOM-aware element names and selectors.
-- Automatic visual evidence for relevant web interactions.
-- Manual screenshots.
-- Flow annotations with optional screenshot.
-- Formal bug records with expected/actual result, severity, frequency and screenshot.
-- Review captured steps before export.
-- Local session history (up to the most recent 50 sessions).
-- Offline HTML QA report and JSON session record export.
+## Funciones
+- Iniciar, pausar y finalizar sesiones web.
+- Capturar clics, cambios de inputs sin guardar los valores escritos, selects, submits y navegación.
+- Detectar elementos DOM y selectores.
+- Capturas automáticas y manuales.
+- Anotaciones de flujo.
+- Registro de bugs.
+- Revisión de sesión e historial local.
+- Exportación HTML/JSON offline.
 
-## Privacy
-All session data stays in `chrome.storage.local`. Text typed into web inputs is never recorded by the extension. Screenshots are stored locally in the browser profile until the session is cleared by browser storage management.
+## Instalación manual
+1. Descomprimir la carpeta de la extensión.
+2. Abrir `chrome://extensions` o `edge://extensions`.
+3. Activar Developer mode / Modo desarrollador.
+4. Seleccionar Load unpacked / Cargar descomprimida.
+5. Elegir la carpeta `BrowserExtension`.
 
-## Install for development
-1. Open `chrome://extensions` or `edge://extensions`.
-2. Enable Developer mode.
-3. Choose **Load unpacked**.
-4. Select this `BrowserExtension` folder.
-
-The desktop QAFlow Recorder remains the universal Windows recorder. This browser edition only records activity inside browser tabs.
+La extensión es solo para actividad dentro del navegador. QAFlow Recorder Desktop sigue siendo la aplicación para captura general de Windows.

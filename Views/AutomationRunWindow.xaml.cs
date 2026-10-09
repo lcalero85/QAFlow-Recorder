@@ -16,6 +16,7 @@ public partial class AutomationRunWindow : Window
     private readonly ObservableCollection<AutomationStepRun> _steps = [];
     private CancellationTokenSource? _cts;
     private AutomationTestRun? _run;
+    private string _reportPath = "";
 
     public AutomationRunWindow(AutomationProject project, AutomationSuite suite, AutomationTestCase testCase, AppSettings settings)
     {
@@ -59,8 +60,8 @@ public partial class AutomationRunWindow : Window
             AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "Este caso no tiene pasos para ejecutar." : "This test case has no steps to execute.", _settings.UiLanguage);
             return;
         }
-        if (_testCase.Steps.Where(s => !s.IsManualCheckpoint && !s.Action.Equals("Input", StringComparison.OrdinalIgnoreCase) && !s.Action.Equals("Select", StringComparison.OrdinalIgnoreCase))
-            .Any(s => string.IsNullOrWhiteSpace(s.SelectorProfile.PrimaryValue) && !s.Action.Equals("Navigate", StringComparison.OrdinalIgnoreCase) && !s.Action.Equals("Scroll", StringComparison.OrdinalIgnoreCase)))
+        if (_testCase.Steps.Where(s => !s.IsManualCheckpoint && ActionRequiresElement(s.Action))
+            .Any(s => string.IsNullOrWhiteSpace(s.SelectorProfile.PrimaryValue)))
         {
             var go = AppDialogWindow.ShowQuestion(this, "QAFlow Recorder",
                 IsSpanish ? "Algunos pasos automáticos todavía no tienen un selector DOM estable. QAFlow puede ejecutar los pasos resolubles y detenerse si encuentra uno ambiguo. ¿Continuar?" : "Some automatic steps do not yet have a stable DOM selector. QAFlow can run resolvable steps and stop on ambiguity. Continue?",
@@ -69,8 +70,9 @@ public partial class AutomationRunWindow : Window
         }
 
         var selectedDataSet = DataSetBox.SelectedItem as AutomationDataSet;
+        var dataIterations = AutomationLifecycleService.ResolveDataIterations(_project, _testCase, selectedDataSet);
         var requiresDataSet = _testCase.Steps.Any(s => !string.IsNullOrWhiteSpace(s.ValueExpression) && s.ValueExpression.Contains("${", StringComparison.Ordinal));
-        if (requiresDataSet && selectedDataSet is null)
+        if (requiresDataSet && dataIterations.All(d => d is null))
         {
             AppDialogWindow.ShowInfo(this, "QAFlow Recorder", IsSpanish ? "Este caso utiliza variables de datos. Selecciona un conjunto de datos antes de ejecutar." : "This test case uses data variables. Select a test data set before running.", _settings.UiLanguage);
             return;
@@ -83,16 +85,41 @@ public partial class AutomationRunWindow : Window
         StatusBadge.Text = IsSpanish ? "EJECUTANDO" : "RUNNING";
         RunStatusText.Text = IsSpanish ? "Iniciando navegador y ejecución..." : "Starting browser and execution...";
         _steps.Clear();
+        _reportPath = "";
 
         try
         {
             var service = new WebAutomationExecutionService(_store);
-            _run = await Task.Run(() => service.ExecuteAsync(_project, _suite, _testCase, selectedDataSet, ManualCheckpointAsync, Progress, _cts.Token));
-            StatusBadge.Text = _run.Status.ToString().ToUpperInvariant();
-            RunStatusText.Text = IsSpanish
-                ? $"Ejecución finalizada: {_run.Status} · {_run.PassRate}% aprobado · {_run.DurationDisplay}"
-                : $"Run finished: {_run.Status} · {_run.PassRate}% passed · {_run.DurationDisplay}";
-            OpenReportButton.IsEnabled = File.Exists(_run.HtmlReportPath);
+            var runs = new List<AutomationTestRun>();
+            foreach (var iteration in dataIterations)
+            {
+                _cts.Token.ThrowIfCancellationRequested();
+                _steps.Clear();
+                RunStatusText.Text = _testCase.DataDrivenEnabled
+                    ? (IsSpanish ? $"Iteración: {iteration?.Name ?? "Sin datos"}..." : $"Iteration: {iteration?.Name ?? "No data"}...")
+                    : (IsSpanish ? "Ejecutando caso..." : "Running test case...");
+                _run = await Task.Run(() => service.ExecuteAsync(_project, _suite, _testCase, iteration, ManualCheckpointAsync, Progress, _cts.Token));
+                runs.Add(_run);
+            }
+            if (runs.Count > 1)
+            {
+                _reportPath = await AutomationDataDrivenHtmlReportService.GenerateAsync(_project, _suite, _testCase, runs);
+                var passed = runs.Count(r => r.Status == AutomationRunStatus.Passed);
+                var failed = runs.Count - passed;
+                StatusBadge.Text = failed == 0 ? "PASSED" : "FAILED";
+                RunStatusText.Text = IsSpanish
+                    ? $"Data-driven finalizado: {passed}/{runs.Count} iteraciones aprobadas."
+                    : $"Data-driven run finished: {passed}/{runs.Count} iterations passed.";
+            }
+            else if (_run is not null)
+            {
+                _reportPath = _run.HtmlReportPath;
+                StatusBadge.Text = _run.Status.ToString().ToUpperInvariant();
+                RunStatusText.Text = IsSpanish
+                    ? $"Ejecución finalizada: {_run.Status} · {_run.PassRate}% aprobado · {_run.DurationDisplay}"
+                    : $"Run finished: {_run.Status} · {_run.PassRate}% passed · {_run.DurationDisplay}";
+            }
+            OpenReportButton.IsEnabled = File.Exists(_reportPath);
         }
         catch (Exception ex)
         {
@@ -106,6 +133,12 @@ public partial class AutomationRunWindow : Window
             StartRunButton.IsEnabled = true;
             CancelRunButton.IsEnabled = false;
         }
+    }
+
+    private static bool ActionRequiresElement(string? action)
+    {
+        var a = (action ?? "").Trim().ToLowerInvariant();
+        return a is not ("navigate" or "scroll" or "validatedownload" or "validate download" or "setcookie" or "set cookie" or "deletecookie" or "delete cookie" or "clearcookies" or "clear cookies" or "setlocalstorage" or "set local storage" or "removelocalstorage" or "remove local storage" or "clearlocalstorage" or "clear local storage" or "setsessionstorage" or "set session storage" or "removesessionstorage" or "remove session storage" or "clearsessionstorage" or "clear session storage");
     }
 
     private Task<bool> ManualCheckpointAsync(AutomationTestStep step)
@@ -134,7 +167,7 @@ public partial class AutomationRunWindow : Window
 
     private void OpenReport_Click(object sender, RoutedEventArgs e)
     {
-        if (_run is null || !File.Exists(_run.HtmlReportPath)) return;
-        Process.Start(new ProcessStartInfo(_run.HtmlReportPath) { UseShellExecute = true });
+        if (string.IsNullOrWhiteSpace(_reportPath) || !File.Exists(_reportPath)) return;
+        Process.Start(new ProcessStartInfo(_reportPath) { UseShellExecute = true });
     }
 }

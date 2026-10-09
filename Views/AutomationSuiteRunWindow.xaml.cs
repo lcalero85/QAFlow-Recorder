@@ -68,25 +68,45 @@ public partial class AutomationSuiteRunWindow : Window
 
         try
         {
+            var beforeSuite = AutomationLifecycleService.Component(effectiveProject, _suite.BeforeSuiteComponentId);
+            if (beforeSuite is not null)
+            {
+                StatusText.Text = IsSpanish ? "Ejecutando fixture Before Suite..." : "Running Before Suite fixture...";
+                var fixtureResult = await ExecuteSuiteFixtureAsync(effectiveProject, beforeSuite, "BeforeSuite", overrideDataSet, _cts.Token);
+                _suiteRun.Cases.Add(fixtureResult); _results.Add(fixtureResult); await _suiteStore.SaveAsync(_suiteRun);
+                if (fixtureResult.Status != AutomationRunStatus.Passed)
+                    throw new InvalidOperationException(IsSpanish ? "El fixture Before Suite falló; los casos fueron omitidos." : "Before Suite fixture failed; test cases were skipped.");
+            }
+
             foreach (var tc in cases)
             {
                 _cts.Token.ThrowIfCancellationRequested();
+                if (!AutomationLifecycleService.DependencySatisfied(tc, _suiteRun.Cases))
+                {
+                    var blocked = new AutomationSuiteCaseResult { TestCaseId = tc.Id, TestCaseKey = tc.Key, TestCaseName = tc.Name, Status = AutomationRunStatus.Blocked, FailureMessage = IsSpanish ? "Dependencia requerida no aprobada." : "Required dependency did not pass." };
+                    _suiteRun.Cases.Add(blocked); _results.Add(blocked); await _suiteStore.SaveAsync(_suiteRun); continue;
+                }
                 StatusText.Text = IsSpanish ? $"Ejecutando {tc.DisplayName}..." : $"Running {tc.DisplayName}...";
-                var dataSet = overrideDataSet ?? (effectiveProject.DataSets.FirstOrDefault(d => d.Id == tc.DefaultDataSetId));
+                var fallbackDataSet = overrideDataSet ?? effectiveProject.DataSets.FirstOrDefault(d => d.Id == tc.DefaultDataSetId);
+                var iterations = AutomationLifecycleService.ResolveDataIterations(effectiveProject, tc, fallbackDataSet);
                 if (tc.Steps.Count == 0)
                 {
                     var empty = new AutomationSuiteCaseResult { TestCaseId = tc.Id, TestCaseKey = tc.Key, TestCaseName = tc.Name, Status = AutomationRunStatus.Blocked, FailureMessage = IsSpanish ? "Caso sin pasos." : "Test case has no steps." };
                     _suiteRun.Cases.Add(empty); _results.Add(empty); await _suiteStore.SaveAsync(_suiteRun); continue;
                 }
 
-                var service = new WebAutomationExecutionService(_runStore);
-                var run = await Task.Run(() => service.ExecuteAsync(effectiveProject, _suite, tc, dataSet, step => ManualCheckpointAsync(tc, step), (_, _) => { }, _cts.Token));
-                var result = new AutomationSuiteCaseResult { TestCaseId = tc.Id, TestRunId = run.Id, TestCaseKey = tc.Key, TestCaseName = tc.Name, Status = run.Status, PassRate = run.PassRate, Duration = run.DurationDisplay, HtmlReportPath = run.HtmlReportPath, FailureMessage = run.FailureMessage };
-                _suiteRun.Cases.Add(result);
-                Dispatcher.Invoke(() => _results.Add(result));
-                await _suiteStore.SaveAsync(_suiteRun);
+                foreach (var dataSet in iterations)
+                {
+                    _cts.Token.ThrowIfCancellationRequested();
+                    var service = new WebAutomationExecutionService(_runStore);
+                    var run = await Task.Run(() => service.ExecuteAsync(effectiveProject, _suite, tc, dataSet, step => ManualCheckpointAsync(tc, step), (_, _) => { }, _cts.Token));
+                    var result = new AutomationSuiteCaseResult { TestCaseId = tc.Id, TestRunId = run.Id, TestCaseKey = tc.Key, TestCaseName = tc.Name, DataSetName = dataSet?.Name ?? "", Status = run.Status, PassRate = run.PassRate, Duration = run.DurationDisplay, HtmlReportPath = run.HtmlReportPath, FailureMessage = run.FailureMessage };
+                    _suiteRun.Cases.Add(result);
+                    Dispatcher.Invoke(() => _results.Add(result));
+                    await _suiteStore.SaveAsync(_suiteRun);
+                }
             }
-            _suiteRun.Status = _suiteRun.Cases.Any(c => c.Status == AutomationRunStatus.Failed) ? AutomationSuiteRunStatus.Failed : _suiteRun.Cases.Any(c => c.Status is AutomationRunStatus.NeedsReview or AutomationRunStatus.Blocked) ? AutomationSuiteRunStatus.NeedsReview : AutomationSuiteRunStatus.Passed;
+            _suiteRun.Status = _suiteRun.Cases.Where(c => string.IsNullOrWhiteSpace(c.LifecycleStage)).Any(c => c.Status == AutomationRunStatus.Failed) ? AutomationSuiteRunStatus.Failed : _suiteRun.Cases.Where(c => string.IsNullOrWhiteSpace(c.LifecycleStage)).Any(c => c.Status is AutomationRunStatus.NeedsReview or AutomationRunStatus.Blocked) ? AutomationSuiteRunStatus.NeedsReview : AutomationSuiteRunStatus.Passed;
         }
         catch (OperationCanceledException)
         {
@@ -98,6 +118,22 @@ public partial class AutomationSuiteRunWindow : Window
         }
         finally
         {
+            try
+            {
+                var afterSuite = AutomationLifecycleService.Component(effectiveProject, _suite.AfterSuiteComponentId);
+                if (afterSuite is not null)
+                {
+                    StatusText.Text = IsSpanish ? "Ejecutando fixture After Suite..." : "Running After Suite fixture...";
+                    var fixtureResult = await ExecuteSuiteFixtureAsync(effectiveProject, afterSuite, "AfterSuite", overrideDataSet, CancellationToken.None);
+                    _suiteRun.Cases.Add(fixtureResult); _results.Add(fixtureResult);
+                    if (fixtureResult.Status != AutomationRunStatus.Passed && _suiteRun.Status == AutomationSuiteRunStatus.Passed) _suiteRun.Status = AutomationSuiteRunStatus.NeedsReview;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (string.IsNullOrWhiteSpace(_suiteRun.FailureMessage)) _suiteRun.FailureMessage = "After Suite: " + ex.Message;
+                if (_suiteRun.Status == AutomationSuiteRunStatus.Passed) _suiteRun.Status = AutomationSuiteRunStatus.NeedsReview;
+            }
             _suiteRun.FinishedAt = DateTimeOffset.Now;
             _suiteRun.HtmlReportPath = await AutomationSuiteHtmlReportService.GenerateAsync(_suiteRun);
             await _suiteStore.SaveAsync(_suiteRun);
@@ -121,6 +157,19 @@ public partial class AutomationSuiteRunWindow : Window
             }
             _cts?.Dispose(); _cts = null;
         }
+    }
+
+    private async Task<AutomationSuiteCaseResult> ExecuteSuiteFixtureAsync(AutomationProject project, ReusableAutomationComponent component, string stage, AutomationDataSet? dataSet, CancellationToken token)
+    {
+        var fixtureCase = AutomationLifecycleService.CreateSuiteFixture(project, component.Id, stage == "BeforeSuite" ? "SETUP" : "TEARDOWN", component.Name);
+        var service = new WebAutomationExecutionService(_runStore);
+        var run = await Task.Run(() => service.ExecuteAsync(project, _suite, fixtureCase, dataSet, step => ManualCheckpointAsync(fixtureCase, step), (_, _) => { }, token));
+        return new AutomationSuiteCaseResult
+        {
+            TestCaseId = fixtureCase.Id, TestRunId = run.Id, TestCaseKey = fixtureCase.Key, TestCaseName = fixtureCase.Name,
+            DataSetName = dataSet?.Name ?? "", LifecycleStage = stage, Status = run.Status, PassRate = run.PassRate,
+            Duration = run.DurationDisplay, HtmlReportPath = run.HtmlReportPath, FailureMessage = run.FailureMessage
+        };
     }
 
     private Task<bool> ManualCheckpointAsync(AutomationTestCase testCase, AutomationTestStep step) => Dispatcher.InvokeAsync(() => AppDialogWindow.ShowQuestion(this,

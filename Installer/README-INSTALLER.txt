@@ -1,4 +1,4 @@
-QAFlow Recorder 1.0 - Self-contained installer build
+﻿QAFlow Recorder 1.0 - Self-contained installer build
 
 1. Install .NET 10 SDK and Inno Setup 6 on Windows.
 2. Right-click Build-Installer.ps1 and run with PowerShell.

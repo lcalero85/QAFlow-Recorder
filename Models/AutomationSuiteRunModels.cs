@@ -15,6 +15,8 @@ public sealed class AutomationSuiteCaseResult
     public string Duration { get; set; } = "";
     public string HtmlReportPath { get; set; } = "";
     public string FailureMessage { get; set; } = "";
+    public string DataSetName { get; set; } = "";
+    public string LifecycleStage { get; set; } = "";
     [JsonIgnore] public string DisplayName => $"{TestCaseKey} · {TestCaseName}";
 }
 
@@ -49,8 +51,9 @@ public sealed class AutomationSuiteRun
             return d.TotalHours >= 1 ? d.ToString(@"hh\:mm\:ss") : d.ToString(@"mm\:ss");
         }
     }
-    [JsonIgnore] public int PassedCases => Cases.Count(c => c.Status == AutomationRunStatus.Passed);
-    [JsonIgnore] public int FailedCases => Cases.Count(c => c.Status == AutomationRunStatus.Failed);
-    [JsonIgnore] public int ReviewCases => Cases.Count(c => c.Status == AutomationRunStatus.NeedsReview);
-    [JsonIgnore] public int PassRate => Cases.Count == 0 ? 0 : (int)Math.Round(PassedCases * 100.0 / Cases.Count);
+    [JsonIgnore] public int PassedCases => Cases.Count(c => string.IsNullOrWhiteSpace(c.LifecycleStage) && c.Status == AutomationRunStatus.Passed);
+    [JsonIgnore] public int FailedCases => Cases.Count(c => string.IsNullOrWhiteSpace(c.LifecycleStage) && c.Status == AutomationRunStatus.Failed);
+    [JsonIgnore] public int ReviewCases => Cases.Count(c => string.IsNullOrWhiteSpace(c.LifecycleStage) && c.Status is AutomationRunStatus.NeedsReview or AutomationRunStatus.Blocked);
+    [JsonIgnore] public int ExecutedCases => Cases.Count(c => string.IsNullOrWhiteSpace(c.LifecycleStage));
+    [JsonIgnore] public int PassRate => ExecutedCases == 0 ? 0 : (int)Math.Round(PassedCases * 100.0 / ExecutedCases);
 }

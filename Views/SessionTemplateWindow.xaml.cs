@@ -1,0 +1,16 @@
+using System.Windows;
+using System.Windows.Controls;
+using QAFlowRecorder.Models;
+using QAFlowRecorder.Services;
+namespace QAFlowRecorder.Views;
+public partial class SessionTemplateWindow:Window
+{
+ private readonly SessionTemplateService _service=new(); private List<SessionTemplateDefinition> _items=[]; private SessionTemplateDefinition? _selected; private readonly bool _es;
+ public SessionTemplateWindow(string language){InitializeComponent();WindowThemeHelper.ApplyDarkTitleBar(this);_es=language.StartsWith("Esp",StringComparison.OrdinalIgnoreCase);Loaded+=async(_,_)=>await LoadAsync();if(_es){Title="Plantillas de sesión";LibraryTitle.Text="Plantillas de sesión";EditorTitle.Text="Detalle de plantilla";NameLabel.Text="Nombre";TestTypeLabel.Text="Tipo de prueba";TagsLabel.Text="Etiquetas predeterminadas";ObjectiveLabel.Text="Objetivo predeterminado";RisksLabel.Text="Riesgos predeterminados";ChecklistLabel.Text="Checklist predeterminado · una validación por línea";PeriodicCheck.Content="Captura periódica de evidencia";IntervalLabel.Text="Intervalo (segundos)";NewButton.Content="Nueva";DeleteButton.Content="Eliminar";CancelButton.Content="Cerrar";SaveButton.Content="Guardar plantilla";}}
+ private async Task LoadAsync(){_items=await _service.LoadAsync();TemplatesList.ItemsSource=_items;if(_items.Count>0)TemplatesList.SelectedIndex=0;}
+ private void TemplatesList_SelectionChanged(object sender,SelectionChangedEventArgs e){_selected=TemplatesList.SelectedItem as SessionTemplateDefinition;if(_selected is null)return;NameBox.Text=_selected.Name;NameBox.IsEnabled=!_selected.BuiltIn;TestTypeBox.SelectedIndex=_selected.TestType switch{"Regression"=>1,"UAT"=>2,"Smoke"=>3,"Exploratory"=>4,_=>0};TagsBox.Text=_selected.DefaultTags;ObjectiveBox.Text=_selected.CharterObjective;RisksBox.Text=_selected.CharterRisks;ChecklistBox.Text=_selected.ChecklistText;PeriodicCheck.IsChecked=_selected.PeriodicCapture;IntervalBox.Text=_selected.PeriodicSeconds.ToString();DeleteButton.IsEnabled=!_selected.BuiltIn;SaveButton.IsEnabled=!_selected.BuiltIn;}
+ private void New_Click(object sender,RoutedEventArgs e){var x=new SessionTemplateDefinition{Name=_es?"Nueva plantilla":"New template"};_items.Add(x);TemplatesList.Items.Refresh();TemplatesList.SelectedItem=x;}
+ private async void Delete_Click(object sender,RoutedEventArgs e){if(_selected is null||_selected.BuiltIn)return;_items.Remove(_selected);await _service.SaveCustomAsync(_items);TemplatesList.Items.Refresh();TemplatesList.SelectedIndex=0;}
+ private async void Save_Click(object sender,RoutedEventArgs e){if(_selected is null||_selected.BuiltIn)return;_selected.Name=string.IsNullOrWhiteSpace(NameBox.Text)?(_es?"Plantilla":"Template"):NameBox.Text.Trim();_selected.TestType=TestTypeBox.SelectedIndex switch{1=>"Regression",2=>"UAT",3=>"Smoke",4=>"Exploratory",_=>"Functional Normal"};_selected.DefaultTags=TagsBox.Text.Trim();_selected.CharterObjective=ObjectiveBox.Text.Trim();_selected.CharterRisks=RisksBox.Text.Trim();_selected.ChecklistText=ChecklistBox.Text.Trim();_selected.PeriodicCapture=PeriodicCheck.IsChecked==true;_selected.PeriodicSeconds=int.TryParse(IntervalBox.Text,out var sec)?Math.Max(10,sec):30;await _service.SaveCustomAsync(_items);TemplatesList.Items.Refresh();}
+ private void Close_Click(object sender,RoutedEventArgs e){DialogResult=true;}
+}

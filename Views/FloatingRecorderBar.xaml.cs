@@ -11,6 +11,8 @@ public partial class FloatingRecorderBar : Window
     public event Action? AnnotateRequested;
     public event Action? CaptureRequested;
     public event Action? BugRequested;
+    public event Action? BookmarkRequested;
+    public event Action? ChecklistRequested;
     public event Action? RestoreRequested;
     public event Func<Task>? FinishRequested;
     private readonly Func<string> _timeProvider;
@@ -40,8 +42,8 @@ public partial class FloatingRecorderBar : Window
     {
         StatusText.Text = paused ? Localizer.T("Paused",_language) : Localizer.T("Recording",_language);
         PauseButton.Content = (paused ? "▶ " : "⏸ ") + (paused ? Localizer.T("Resume",_language) : Localizer.T("Pause",_language));
-        AnnotateButton.Content="✎ "+Localizer.T("Annotate",_language);CaptureButton.Content="📷 "+Localizer.T("Capture",_language);BugButton.Content="🐞 "+Localizer.T("Bug",_language);RestoreButton.Content="▣ "+Localizer.T("Open",_language);FinishButton.Content="■ "+Localizer.T("Finish",_language);
-        var es=_language.StartsWith("Esp",StringComparison.OrdinalIgnoreCase);PauseButton.ToolTip=es?"Pausar o reanudar grabación":"Pause or resume recording";AnnotateButton.ToolTip=es?"Agregar anotación QA":"Add QA annotation";CaptureButton.ToolTip=es?"Capturar el objetivo actual":"Capture current target";BugButton.ToolTip=es?"Pausar y documentar un bug":"Pause and document a bug";RestoreButton.ToolTip=es?"Mostrar QAFlow Recorder":"Show QAFlow Recorder";FinishButton.ToolTip=es?"Finalizar sesión y exportar":"Finish session and export";
+        AnnotateButton.Content="✎ "+Localizer.T("Annotate",_language);CaptureButton.Content="📷 "+Localizer.T("Capture",_language);BookmarkButton.Content=( _language.StartsWith("Esp",StringComparison.OrdinalIgnoreCase) ? "★ Marcar" : "★ Mark");ChecklistButton.Content="☑ "+(_language.StartsWith("Esp",StringComparison.OrdinalIgnoreCase)?"Checklist":"Checklist");BugButton.Content="🐞 "+Localizer.T("Bug",_language);RestoreButton.Content="▣ "+Localizer.T("Open",_language);FinishButton.Content="■ "+Localizer.T("Finish",_language);
+        var es=_language.StartsWith("Esp",StringComparison.OrdinalIgnoreCase);PauseButton.ToolTip=es?"Pausar o reanudar grabación":"Pause or resume recording";AnnotateButton.ToolTip=es?"Agregar anotación QA":"Add QA annotation";CaptureButton.ToolTip=es?"Capturar el objetivo actual":"Capture current target";BookmarkButton.ToolTip=es?"Agregar marcador de sesión":"Add session bookmark";ChecklistButton.ToolTip=es?"Abrir checklist manual":"Open manual checklist";BugButton.ToolTip=es?"Pausar y documentar un bug":"Pause and document a bug";RestoreButton.ToolTip=es?"Mostrar QAFlow Recorder":"Show QAFlow Recorder";FinishButton.ToolTip=es?"Finalizar sesión y exportar":"Finish session and export";
     }
 
     public void SetPaused(bool paused)
@@ -64,6 +66,8 @@ public partial class FloatingRecorderBar : Window
     private void Pause_Click(object sender,RoutedEventArgs e)=>PauseRequested?.Invoke();
     private void Annotate_Click(object sender,RoutedEventArgs e)=>AnnotateRequested?.Invoke();
     private void Capture_Click(object sender,RoutedEventArgs e)=>CaptureRequested?.Invoke();
+    private void Bookmark_Click(object sender,RoutedEventArgs e)=>BookmarkRequested?.Invoke();
+    private void Checklist_Click(object sender,RoutedEventArgs e)=>ChecklistRequested?.Invoke();
     private void Bug_Click(object sender,RoutedEventArgs e)=>BugRequested?.Invoke();
     private void Restore_Click(object sender,RoutedEventArgs e)=>RestoreRequested?.Invoke();
     private async void Finish_Click(object sender, RoutedEventArgs e)

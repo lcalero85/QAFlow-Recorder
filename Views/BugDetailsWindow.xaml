@@ -2,22 +2,22 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Report bug — recording paused" Width="456" Height="760" MinWidth="456" MinHeight="640"
-        WindowStartupLocation="CenterScreen" Background="#090D14" Foreground="#F3F7FC" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
+        WindowStartupLocation="CenterScreen" Background="{DynamicResource Bg0Brush}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid Margin="16">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <StackPanel>
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <Image Source="pack://application:,,,/Assets/qaflow-logo.png" Width="38" Height="38" Margin="0,0,10,0"/>
-                <TextBlock Grid.Column="1" x:Name="TitleText" Text="Report bug — recording paused" FontSize="18" FontWeight="Bold" Foreground="#FF6577" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" x:Name="TitleText" Text="Report bug — recording paused" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource RedBrush}" VerticalAlignment="Center"/>
             </Grid>
-            <Border Background="#351820" BorderBrush="#6C2B37" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,10,0,12">
-                <TextBlock x:Name="PauseInfoText" Text="Recording is paused while you document the bug. It resumes automatically when you save or close." Foreground="#FFB4B9" TextWrapping="Wrap"/>
+            <Border Background="{DynamicResource DangerSurfaceBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,10,0,12">
+                <TextBlock x:Name="PauseInfoText" Text="Recording is paused while you document the bug. It resumes automatically when you save or close." Foreground="{DynamicResource DangerTextBrush}" TextWrapping="Wrap"/>
             </Border>
         </StackPanel>
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,6,0">
-                <Border Background="#111A27" BorderBrush="#26364A" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,0,12">
+                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,0,12">
                     <Image x:Name="BugPreview" Height="180" Stretch="Uniform"/>
                 </Border>
                 <Button x:Name="RemarkButton" Content="✎ Mark screenshot again" HorizontalAlignment="Left" Margin="0,0,0,14" Click="Remark_Click"/>
@@ -49,7 +49,7 @@
                 <TextBlock x:Name="AttachmentsLabel" Text="Attachments" FontWeight="SemiBold" Margin="0,12,0,5"/>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="AddImageButton" Content="Add image" Click="AddImage_Click" Width="130"/>
-                    <TextBlock x:Name="AttachmentCountText" Text="0 attachment(s)" VerticalAlignment="Center" Foreground="#98A8BC" Margin="10,0,0,0"/>
+                    <TextBlock x:Name="AttachmentCountText" Text="0 attachment(s)" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0"/>
                 </StackPanel>
 
                 <TextBlock x:Name="NoteLabel" Text="Free note" FontWeight="SemiBold" Margin="0,12,0,5"/>
