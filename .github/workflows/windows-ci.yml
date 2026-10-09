@@ -1,0 +1,153 @@
+name: QAFlow Recorder - Windows CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+  PROJECT_PATH: QAFlowRecorder.csproj
+  RUNTIME_ID: win-x64
+
+jobs:
+  build:
+    name: Build and publish (win-x64)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Show .NET environment
+        shell: pwsh
+        run: |
+          dotnet --info
+          if (-not (Test-Path $env:PROJECT_PATH)) {
+            throw "Project file was not found: $env:PROJECT_PATH"
+          }
+
+      - name: Restore
+        shell: pwsh
+        run: |
+          dotnet restore $env:PROJECT_PATH `
+            -r $env:RUNTIME_ID
+
+      - name: Build
+        shell: pwsh
+        run: |
+          dotnet build $env:PROJECT_PATH `
+            -c $env:CONFIGURATION `
+            -r $env:RUNTIME_ID `
+            --no-restore `
+            -p:ContinuousIntegrationBuild=true
+
+      - name: Run tests when test projects exist
+        shell: pwsh
+        run: |
+          $testProjects = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter *.csproj |
+            Where-Object { $_.Name -match '(?i)(test|tests)\.csproj$' }
+
+          if (-not $testProjects) {
+            Write-Host "No test project was found. Build validation will continue."
+          } else {
+            foreach ($testProject in $testProjects) {
+              Write-Host "Running tests: $($testProject.FullName)"
+              dotnet test $testProject.FullName -c $env:CONFIGURATION --no-restore
+              if ($LASTEXITCODE -ne 0) {
+                throw "Tests failed: $($testProject.FullName)"
+              }
+            }
+          }
+
+      - name: Publish self-contained application
+        shell: pwsh
+        run: |
+          $publishDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\publish"
+          dotnet publish $env:PROJECT_PATH `
+            -c $env:CONFIGURATION `
+            -r $env:RUNTIME_ID `
+            --self-contained true `
+            --no-restore `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -p:ContinuousIntegrationBuild=true `
+            -o $publishDir
+
+          $exe = Join-Path $publishDir "QAFlowRecorder.exe"
+          if (-not (Test-Path $exe)) {
+            throw "Publish validation failed: QAFlowRecorder.exe was not generated."
+          }
+
+      - name: Upload portable application
+        uses: actions/upload-artifact@v4
+        with:
+          name: QAFlowRecorder-win-x64-portable
+          path: artifacts/publish/**
+          if-no-files-found: error
+          retention-days: 14
+
+  installer:
+    name: Build Windows installer
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Inno Setup 6
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          if ($iscc) {
+            Write-Host "Inno Setup compiler: $($iscc.Source)"
+          } else {
+            Write-Host "ISCC.exe is not on PATH; Build-Installer.ps1 will also inspect standard install locations."
+          }
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy -Scope Process Bypass -Force
+          & .\Installer\Build-Installer.ps1
+          if ($LASTEXITCODE -ne 0) {
+            throw "Installer script returned exit code $LASTEXITCODE."
+          }
+
+      - name: Validate installer
+        shell: pwsh
+        run: |
+          $installer = ".\Installer\Output\QAFlow_Recorder_1.0_Setup_x64.exe"
+          if (-not (Test-Path $installer)) {
+            throw "Installer was not generated: $installer"
+          }
+          Get-Item $installer | Format-List FullName, Length, LastWriteTime
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: QAFlowRecorder-win-x64-installer
+          path: Installer/Output/QAFlow_Recorder_1.0_Setup_x64.exe
+          if-no-files-found: error
+          retention-days: 14

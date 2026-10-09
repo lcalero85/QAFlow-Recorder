@@ -12,9 +12,10 @@ public static class ThemeManager
     public static void ApplyTheme(string? requestedTheme)
     {
         var theme = string.Equals(requestedTheme, Aero, StringComparison.OrdinalIgnoreCase) ? Aero : Dark;
-        var resources = Application.Current?.Resources;
-        if (resources is null) return;
+        var app = Application.Current;
+        if (app is null) return;
 
+        var resources = app.Resources;
         var source = new Uri($"Themes/{theme}Theme.xaml", UriKind.Relative);
         var merged = resources.MergedDictionaries;
         var existing = merged.FirstOrDefault(d => d.Source is not null &&
@@ -30,7 +31,7 @@ public static class ThemeManager
         }
 
         CurrentTheme = theme;
-        foreach (Window window in Application.Current.Windows)
+        foreach (Window window in app.Windows)
             WindowThemeHelper.ApplyTitleBar(window);
     }
 }

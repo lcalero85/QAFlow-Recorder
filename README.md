@@ -508,3 +508,7 @@ La revisión de interfaz también normaliza objetivos mínimos de interacción, 
 - PDF evidence quality is now effective: 100 preserves original evidence bytes; lower settings use high-quality bounded JPEG encoding. Fresh installs default to 100 (original evidence bytes).
 - Recoverable technical failures write structured local diagnostics to `%LOCALAPPDATA%\QAFlowRecorder\logs\technical.jsonl` without secrets or typed values.
 - `Build-Installer.ps1` rebuilds the packaged browser-extension ZIP from source before publishing to prevent stale embedded releases.
+
+## GitHub Actions
+
+The repository includes `.github/workflows/windows-ci.yml` for Windows CI. It restores and builds `QAFlowRecorder.csproj` directly, publishes a self-contained `win-x64` artifact, installs Inno Setup on the runner, and generates the Windows installer as a second workflow artifact. `QAFlowRecorder.sln` is also included for tools that require a solution file.
