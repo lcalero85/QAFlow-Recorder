@@ -2,6 +2,10 @@
 
 QAFlow Recorder es una aplicación de Windows para registrar evidencia de pruebas de software y, opcionalmente, trabajar con un entorno híbrido de automatización web. Está diseñada para que el QA pruebe de forma natural mientras la aplicación registra interacciones, evidencias visuales, anotaciones, defectos y contexto de ejecución.
 
+[![Descargar Última Versión](https://img.shields.io/badge/Descargar-QA_Flow_Recorder_v1.0-blue?style=for-the-badge&logo=github)](https://github.com/lcalero85/QAFlow-Recorder/releases/latest)
+
+> 🚀 **Descarga rápida:** [Haz clic aquí para descargar el instalador (.exe)](https://github.com/lcalero85/QAFlow-Recorder/releases/latest)
+
 ## Modos del producto
 
 ### Recorder Only
@@ -472,43 +476,9 @@ Este bloque cierra formalmente la Fase 16 sin alterar el Recorder normal ni camb
 - Produce un estado de cierre orientativo: matriz incompleta, atención requerida, lista para revisión QA o lista para sign-off QA.
 - Genera acciones recomendadas según resultados reales: ejecuciones pendientes, navegadores fallidos, casos con resultados diferentes, casos ausentes y revisiones manuales.
 - La decisión final sigue siendo humana: el resumen no aprueba releases ni altera estados de casos automáticamente.
-- Conserva la evidencia comparativa del Bloque 6, huella/versionado de navegador, preflight, análisis diferencial, Firefox DOM Instrumentation y toda la funcionalidad previa.
-- Se mantienen los hotfix del instalador para rutas cortas/MAX_PATH y restore específico `win-x64`.
 
-Con este bloque, **Fase 16 queda cerrada funcionalmente**. El paso recomendado antes de abrir una Fase 17 es una regresión completa del Recorder normal y de la capa híbrida para detectar brechas restantes sin seguir ampliando esta fase.
+## 📥 Instalación
 
-## Ajustes pre-auditoría — Identidad corporativa y calidad profesional de PDFs
-
-Antes de iniciar la auditoría general se reforzó la generación de informes PDF sin alterar el Recorder normal ni la capa híbrida.
-
-- En **Settings / Configuración** se añadió una sección de **Identidad de informes PDF** para seleccionar un logo corporativo personalizado.
-- Se admiten logos PNG, JPG/JPEG, WEBP, BMP y SVG.
-- Cuando existe un logo personalizado válido, este reemplaza el logo y la identidad visible de QAFlow dentro de los PDFs entregables.
-- Si no existe logo personalizado, el reporte conserva automáticamente el logo de QAFlow como fallback.
-- El reporte de ejecución QA incorpora control documental, ID único de reporte, fecha de generación, responsable QA, build, estado, evidencia, trazabilidad y apéndice técnico configurable.
-- El reporte de defectos incorpora ID controlado, resumen de defectos por severidad, cobertura de evidencia, build, tipo de prueba y datos de generación.
-- Se reforzó el CSS de impresión A4, preservación de fondos, tipografía, tablas, imágenes y separación de secciones para una presentación corporativa consistente.
-- Las capturas continúan incrustándose desde sus archivos originales; QAFlow utiliza PNG sin pérdida para la evidencia capturada por el Recorder.
-- Los informes mantienen lenguaje profesional de QA y evitan atribuir automáticamente aprobación de release o conclusiones fuera del alcance observado.
-
-Estos cambios se consideran **pre-auditoría** y no abren una nueva fase funcional.
-
-## Tema Aero y revisión UX
-
-La interfaz incluye ahora dos temas seleccionables desde **Configuración > Apariencia**: **Dark** y **Aero**. Aero utiliza una estética clara inspirada en vidrio/Aero, con superficies luminosas, contraste técnico y acentos azules, manteniendo exactamente el mismo flujo funcional.
-
-La revisión de interfaz también normaliza objetivos mínimos de interacción, estados de foco de teclado, contraste de campos, listas y botones, jerarquía visual y superficies reutilizadas. El tema seleccionado se guarda en la configuración local y se aplica en el siguiente inicio antes de mostrar la ventana principal, evitando cambios visuales tardíos.
-
-
-## Final Stabilization Block
-
-- Automation workspace saves are serialized, debounced for continuous text edits, and written atomically.
-- Browser instrumentation uses configured-origin CORS plus an ephemeral runtime token; arbitrary web origins are rejected.
-- Aero-facing hard-coded UI colors were migrated to theme resources for consistent light/dark rendering.
-- PDF evidence quality is now effective: 100 preserves original evidence bytes; lower settings use high-quality bounded JPEG encoding. Fresh installs default to 100 (original evidence bytes).
-- Recoverable technical failures write structured local diagnostics to `%LOCALAPPDATA%\QAFlowRecorder\logs\technical.jsonl` without secrets or typed values.
-- `Build-Installer.ps1` rebuilds the packaged browser-extension ZIP from source before publishing to prevent stale embedded releases.
-
-## GitHub Actions
-
-The repository includes `.github/workflows/windows-ci.yml` for Windows CI. It restores and builds `QAFlowRecorder.csproj` directly, publishes a self-contained `win-x64` artifact, installs Inno Setup on the runner, and generates the Windows installer as a second workflow artifact. `QAFlowRecorder.sln` is also included for tools that require a solution file.
+1. Descarga el ejecutable desde la sección de **[Releases Oficiales](https://github.com/lcalero85/QAFlow-Recorder/releases/latest)**.
+2. Ejecuta el archivo `QAFlow_Recorder_1.0_Setup_x64.exe`.
+3. Si Windows SmartScreen muestra una advertencia, haz clic en **"Más información"** y luego en **"Ejecutar de todas formas"**.
