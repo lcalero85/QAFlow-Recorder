@@ -28,6 +28,10 @@ public partial class MainWindow : Window
     private bool _isSplitting;
     private HwndSource? _hwndSource;
     private WebInstrumentationBridge? _webBridge;
+    private List<DisplayMonitorInfo> _displayMonitors = [];
+    private CaptureAreaSelection? _customCaptureArea;
+    private DateTimeOffset _lastRecoverySave = DateTimeOffset.MinValue;
+    private VideoRecordingService? _videoRecorder;
 
     private static readonly TimeSpan PartLimit = TimeSpan.FromHours(2);
     private const int HotkeyToggle = 101;
@@ -64,11 +68,13 @@ public partial class MainWindow : Window
         _webBridge.ObservationReceived += WebBridge_ObservationReceived;
         _webBridge.Start();
         LoadSettingsToUi();
+        RefreshRecordingScreens();
         await ReloadHistoryAsync();
         await ReloadReferenceFlowsAsync();
         await ReloadSessionTemplatesAsync();
         ApplyLanguage();
         StateText.Text = Localizer.T("NoSession", _settings.UiLanguage);
+        await TryRecoverInterruptedSessionAsync();
     }
 
     private void DockToRight()
@@ -168,11 +174,11 @@ public partial class MainWindow : Window
         try
         {
             await Task.Delay(90);
-            var bitmap = DesktopCaptureService.CaptureWindowFromScreen(targetWindow)
-                         ?? DesktopCaptureService.CapturePrimaryScreen();
+            var captureBounds = GetActiveCaptureBounds();
+            var bitmap = CaptureConfiguredBitmap(targetWindow);
             if (bitmap is null) return;
             if (_settings.PrivacyMasking == PrivacyMaskMode.Automatic && ev.Kind == EventKind.Input) ev.MaskSensitiveEvidence = true;
-            var protectedBitmap = PrivacyMaskService.Apply(bitmap, ev, targetWindow, _settings.PrivacyMasking);
+            var protectedBitmap = PrivacyMaskService.Apply(bitmap, ev, targetWindow, _settings.PrivacyMasking, captureBounds);
             var zoneProtectedBitmap = PrivacyMaskService.ApplyZones(protectedBitmap, _settings.PrivacyZones, ev.WindowTitle);
             var path = DesktopCaptureService.SavePng(zoneProtectedBitmap, _store.EvidenceFolder(_session), "interaction");
             _session.Screenshots.Add(new EvidenceShot
@@ -204,8 +210,7 @@ public partial class MainWindow : Window
             var hwnd = _desktopRecorder.LastTargetWindow;
             if (hwnd == IntPtr.Zero || DesktopCaptureService.IsHandleOwnedByCurrentProcess(hwnd))
                 hwnd = DesktopCaptureService.GetForegroundWindowHandle();
-            var bitmap = DesktopCaptureService.CaptureWindowFromScreen(hwnd)
-                         ?? DesktopCaptureService.CapturePrimaryScreen();
+            var bitmap = CaptureConfiguredBitmap(hwnd);
             if (bitmap is null) return null;
             var windowTitle = DesktopCaptureService.GetWindowTitle(hwnd);
             var protectedBitmap = PrivacyMaskService.ApplyZones(bitmap, _settings.PrivacyZones, windowTitle);
@@ -225,6 +230,112 @@ public partial class MainWindow : Window
         finally
         {
             if (barWasVisible && _floatingBar is not null) _floatingBar.Show();
+        }
+    }
+
+    private void RefreshRecordingScreens()
+    {
+        var previousDevice = (RecordingScreenBox.SelectedItem as DisplayMonitorInfo)?.DeviceName;
+        _displayMonitors = DesktopCaptureService.GetMonitors().ToList();
+        var es = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
+        for (var i = 0; i < _displayMonitors.Count; i++)
+        {
+            var m = _displayMonitors[i];
+            m.DisplayName = $"{(m.IsPrimary ? "★ " : "")}{(es ? "Pantalla" : "Screen")} {i + 1} · {m.Bounds.Width}×{m.Bounds.Height}{(m.IsPrimary ? (es ? " · Principal" : " · Primary") : "")}";
+        }
+        RecordingScreenBox.ItemsSource = _displayMonitors;
+        var selected = _displayMonitors.FirstOrDefault(x => x.DeviceName.Equals(previousDevice, StringComparison.OrdinalIgnoreCase))
+                       ?? _displayMonitors.FirstOrDefault(x => x.IsPrimary)
+                       ?? _displayMonitors.FirstOrDefault();
+        RecordingScreenBox.SelectedItem = selected;
+        if (_customCaptureArea is not null && selected is not null && !_customCaptureArea.MonitorDeviceName.Equals(selected.DeviceName, StringComparison.OrdinalIgnoreCase))
+            _customCaptureArea = null;
+        UpdateCaptureAreaStatus();
+    }
+
+    private DisplayMonitorInfo? SelectedRecordingMonitor => RecordingScreenBox.SelectedItem as DisplayMonitorInfo;
+
+    private Int32Rect? GetActiveCaptureBounds()
+    {
+        if (_customCaptureArea is { IsValid: true }) return _customCaptureArea.Bounds;
+        return SelectedRecordingMonitor?.Bounds;
+    }
+
+    private string GetCaptureResolutionText()
+    {
+        var bounds = GetActiveCaptureBounds();
+        return bounds is { } b ? $"{b.Width}x{b.Height}" : $"{SystemParameters.PrimaryScreenWidth:0}x{SystemParameters.PrimaryScreenHeight:0}";
+    }
+
+    private System.Windows.Media.Imaging.BitmapSource? CaptureConfiguredBitmap(IntPtr fallbackWindow)
+    {
+        if (_customCaptureArea is { IsValid: true })
+            return DesktopCaptureService.CaptureRegion(_customCaptureArea.Bounds);
+        if (SelectedRecordingMonitor is { } monitor)
+            return DesktopCaptureService.CaptureMonitor(monitor);
+        return DesktopCaptureService.CaptureWindowFromScreen(fallbackWindow) ?? DesktopCaptureService.CapturePrimaryScreen();
+    }
+
+    private void RefreshScreens_Click(object sender, RoutedEventArgs e) => RefreshRecordingScreens();
+
+    private void RecordingScreenBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        if (_customCaptureArea is not null && SelectedRecordingMonitor is { } monitor &&
+            !_customCaptureArea.MonitorDeviceName.Equals(monitor.DeviceName, StringComparison.OrdinalIgnoreCase))
+            _customCaptureArea = null;
+        UpdateCaptureAreaStatus();
+    }
+
+    private void SelectCaptureArea_Click(object sender, RoutedEventArgs e)
+    {
+        var monitor = SelectedRecordingMonitor;
+        if (monitor is null)
+        {
+            RefreshRecordingScreens();
+            monitor = SelectedRecordingMonitor;
+        }
+        if (monitor is null) return;
+
+        var wasVisible = IsVisible;
+        Hide();
+        try
+        {
+            var selector = new CaptureAreaSelectorWindow(monitor, _settings.UiLanguage);
+            if (selector.ShowDialog() == true && selector.Selection is { IsValid: true } selection)
+                _customCaptureArea = selection;
+        }
+        finally
+        {
+            if (wasVisible) { Show(); Activate(); }
+            UpdateCaptureAreaStatus();
+        }
+    }
+
+    private void ClearCaptureArea_Click(object sender, RoutedEventArgs e)
+    {
+        _customCaptureArea = null;
+        UpdateCaptureAreaStatus();
+    }
+
+    private void UpdateCaptureAreaStatus()
+    {
+        if (CaptureAreaStatusText is null) return;
+        var es = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
+        var monitor = SelectedRecordingMonitor;
+        if (_customCaptureArea is { IsValid: true } area)
+        {
+            CaptureAreaStatusText.Text = es
+                ? $"Área personalizada · {area.Bounds.Width}×{area.Bounds.Height} px · {monitor?.DisplayName ?? "pantalla"}"
+                : $"Custom area · {area.Bounds.Width}×{area.Bounds.Height} px · {monitor?.DisplayName ?? "screen"}";
+            ClearCaptureAreaButton.IsEnabled = _session is null || _session.State is not (SessionState.Recording or SessionState.Paused);
+        }
+        else
+        {
+            CaptureAreaStatusText.Text = es
+                ? $"Pantalla completa · {monitor?.DisplayName ?? "pantalla principal"}"
+                : $"Full screen · {monitor?.DisplayName ?? "primary screen"}";
+            ClearCaptureAreaButton.IsEnabled = false;
         }
     }
 
@@ -250,13 +361,28 @@ public partial class MainWindow : Window
             Tester = _settings.QaName,
             Template = TemplateBox.SelectedIndex switch { 1 => "Regression", 2 => "UAT", 3 => "Smoke", 4 => "Exploratory", _ => "Functional Normal" },
             StartedAt = DateTimeOffset.Now,
-            Resolution = $"{SystemParameters.PrimaryScreenWidth:0}x{SystemParameters.PrimaryScreenHeight:0}",
+            Resolution = GetCaptureResolutionText(),
+            CaptureScreen = SelectedRecordingMonitor?.DisplayName ?? "Primary screen",
+            CaptureDeviceName = SelectedRecordingMonitor?.DeviceName ?? "",
+            CustomCaptureArea = _customCaptureArea is { IsValid: true },
+            CaptureAreaX = _customCaptureArea?.Bounds.X ?? SelectedRecordingMonitor?.Bounds.X ?? 0,
+            CaptureAreaY = _customCaptureArea?.Bounds.Y ?? SelectedRecordingMonitor?.Bounds.Y ?? 0,
+            CaptureAreaWidth = GetActiveCaptureBounds()?.Width ?? 0,
+            CaptureAreaHeight = GetActiveCaptureBounds()?.Height ?? 0,
             BuildVersion = BuildVersionBox.Text.Trim(),
+            FunctionalRisk = RiskValue(FunctionalRiskBox.SelectedIndex),
+            VisualRisk = RiskValue(VisualRiskBox.SelectedIndex),
+            RegressionRisk = RiskValue(RegressionRiskBox.SelectedIndex),
+            DataRisk = RiskValue(DataRiskBox.SelectedIndex),
+            RiskSummaryNotes = RiskSummaryNotesBox.Text.Trim(),
+            RecoveryCheckpointAt = DateTimeOffset.Now,
+            VideoRecordingEnabled = RecordVideoCheck.IsChecked == true,
+            VideoFrameRate = 4,
             EnvironmentSnapshot = new EnvironmentSnapshot
             {
                 CapturedAt = DateTimeOffset.Now,
                 OperatingSystem = Environment.OSVersion.VersionString,
-                Resolution = $"{SystemParameters.PrimaryScreenWidth:0}x{SystemParameters.PrimaryScreenHeight:0}",
+                Resolution = GetCaptureResolutionText(),
                 TimeZone = TimeZoneInfo.Local.DisplayName,
                 MachineName = Environment.MachineName,
                 ActiveApplication = initialApp,
@@ -284,16 +410,19 @@ public partial class MainWindow : Window
         _session = session;
 
         _desktopRecorder.Start();
+        if (_session.VideoRecordingEnabled) await StartVideoRecordingAsync(_session);
         StartButton.IsEnabled = false;
         PauseButton.IsEnabled = true;
         FinishButton.IsEnabled = true;
         SessionTemplateBox.IsEnabled = false; ManageSessionTemplatesButton.IsEnabled = false;
         SessionNameBox.IsEnabled = false;
         OrganizationExpander.IsEnabled = false;
+        RiskSummaryExpander.IsEnabled = true;
         TemplateBox.IsEnabled = false;
         CharterExpander.IsEnabled = false;
         ChecklistExpander.IsEnabled = false;
         ReferenceFlowBox.IsEnabled = false; ManageFlowsButton.IsEnabled = false;
+        RecordingScreenBox.IsEnabled = false; RefreshScreensButton.IsEnabled = false; SelectCaptureAreaButton.IsEnabled = false; ClearCaptureAreaButton.IsEnabled = false; RecordVideoCheck.IsEnabled = false;
         StateDot.Fill = new SolidColorBrush(Color.FromRgb(255, 101, 119));
         StateText.Text = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "GRABANDO" : "RECORDING";
         _timer.Start();
@@ -305,14 +434,18 @@ public partial class MainWindow : Window
             _periodic.Start();
         }
         RefreshMetrics();
-        StatusBar.Text = $"{Localizer.T("SessionStarted", _settings.UiLanguage)}: {_session.DisplayName}";
+        StatusBar.Text = _session.VideoRecordingEnabled
+            ? $"{Localizer.T("SessionStarted", _settings.UiLanguage)}: {_session.DisplayName} · {(_settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "video activo" : "video active")}"
+            : $"{Localizer.T("SessionStarted", _settings.UiLanguage)}: {_session.DisplayName}";
+        await SaveRecoveryCheckpointAsync(force: true);
         StartRecordingUiMode();
-        await Task.CompletedTask;
     }
 
     private async void SessionTimer_Tick(object? sender, EventArgs e)
     {
         RefreshMetrics();
+        if (_session is { State: SessionState.Recording or SessionState.Paused } && DateTimeOffset.Now - _lastRecoverySave >= TimeSpan.FromSeconds(5))
+            await SaveRecoveryCheckpointAsync();
         if (_session is { State: SessionState.Recording } && _session.Duration >= PartLimit && !_isSplitting)
             await SplitSessionAsync();
     }
@@ -339,6 +472,7 @@ public partial class MainWindow : Window
                     : $"This part reached 2 hours. QAFlow will save Part {current.PartNumber} and automatically continue with Part {current.PartNumber + 1}, linked to the same main session.",
                 _settings.UiLanguage);
 
+            await StopVideoRecordingAsync();
             current.State = SessionState.Finished;
             current.FinishedAt = DateTimeOffset.Now;
             current.Events = Deduplicator.Process(current.Events);
@@ -353,7 +487,22 @@ public partial class MainWindow : Window
                 Template = current.Template,
                 StartedAt = DateTimeOffset.Now,
                 Resolution = current.Resolution,
+                CaptureScreen = current.CaptureScreen,
+                CaptureDeviceName = current.CaptureDeviceName,
+                CustomCaptureArea = current.CustomCaptureArea,
+                CaptureAreaX = current.CaptureAreaX,
+                CaptureAreaY = current.CaptureAreaY,
+                CaptureAreaWidth = current.CaptureAreaWidth,
+                CaptureAreaHeight = current.CaptureAreaHeight,
                 BuildVersion = current.BuildVersion,
+                FunctionalRisk = current.FunctionalRisk,
+                VisualRisk = current.VisualRisk,
+                RegressionRisk = current.RegressionRisk,
+                DataRisk = current.DataRisk,
+                RiskSummaryNotes = current.RiskSummaryNotes,
+                RecoveryCheckpointAt = DateTimeOffset.Now,
+                VideoRecordingEnabled = current.VideoRecordingEnabled,
+                VideoFrameRate = current.VideoFrameRate,
                 EnvironmentSnapshot = current.EnvironmentSnapshot,
                 ManualChecklist = current.ManualChecklist.Select(x => new ManualChecklistItem { Id=x.Id, Order=x.Order, Text=x.Text, Status=x.Status, Note=x.Note }).ToList(),
                 State = SessionState.Recording,
@@ -365,6 +514,7 @@ public partial class MainWindow : Window
             current.NextPartId = next.Id;
             await _store.SaveAsync(current);
             _session = next;
+            if (next.VideoRecordingEnabled) await StartVideoRecordingAsync(next);
             await _store.SaveAsync(next);
             await ReloadHistoryAsync();
 
@@ -398,6 +548,8 @@ public partial class MainWindow : Window
             StateDot.Fill = new SolidColorBrush(Color.FromRgb(244, 184, 96));
             StateText.Text = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "PAUSADO" : "PAUSED";
             _floatingBar?.SetPaused(true);
+            _videoRecorder?.Pause();
+            _ = SaveRecoveryCheckpointAsync(force: true);
         }
         else if (_session.State == SessionState.Paused)
         {
@@ -408,6 +560,8 @@ public partial class MainWindow : Window
             StateDot.Fill = new SolidColorBrush(Color.FromRgb(255, 101, 119));
             StateText.Text = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase) ? "GRABANDO" : "RECORDING";
             _floatingBar?.SetPaused(false);
+            _videoRecorder?.Resume();
+            _ = SaveRecoveryCheckpointAsync(force: true);
         }
     }
 
@@ -426,13 +580,21 @@ public partial class MainWindow : Window
             if (_session.State == SessionState.Paused && _session.PauseStartedAt is { } p)
                 _session.PausedTime += DateTimeOffset.Now - p;
 
+            _session.FunctionalRisk = RiskValue(FunctionalRiskBox.SelectedIndex);
+            _session.VisualRisk = RiskValue(VisualRiskBox.SelectedIndex);
+            _session.RegressionRisk = RiskValue(RegressionRiskBox.SelectedIndex);
+            _session.DataRisk = RiskValue(DataRiskBox.SelectedIndex);
+            _session.RiskSummaryNotes = RiskSummaryNotesBox.Text.Trim();
+
             try { await CaptureDesktopEvidenceAsync(ScreenshotKind.Final); } catch { }
             _desktopRecorder.Stop();
             _timer.Stop();
             _periodic.Stop();
+            await StopVideoRecordingAsync();
 
             _session.State = SessionState.Finished;
             _session.FinishedAt = DateTimeOffset.Now;
+            _session.RecoveryCheckpointAt = DateTimeOffset.Now;
             _session.Events = Deduplicator.Process(_session.Events);
             await _store.SaveAsync(_session);
             await ReloadHistoryAsync();
@@ -442,10 +604,12 @@ public partial class MainWindow : Window
             SessionTemplateBox.IsEnabled = true; ManageSessionTemplatesButton.IsEnabled = true;
             SessionNameBox.IsEnabled = true;
             OrganizationExpander.IsEnabled = true;
+            RiskSummaryExpander.IsEnabled = true;
             TemplateBox.IsEnabled = true;
             CharterExpander.IsEnabled = true;
             ChecklistExpander.IsEnabled = true;
             ReferenceFlowBox.IsEnabled = true; ManageFlowsButton.IsEnabled = true;
+            RecordingScreenBox.IsEnabled = true; RefreshScreensButton.IsEnabled = true; SelectCaptureAreaButton.IsEnabled = true; ClearCaptureAreaButton.IsEnabled = _customCaptureArea is not null; RecordVideoCheck.IsEnabled = true;
             StateDot.Fill = new SolidColorBrush(Color.FromRgb(61, 220, 151));
             StateText.Text = Localizer.T("Finished", _settings.UiLanguage);
             RefreshMetrics();
@@ -502,7 +666,7 @@ public partial class MainWindow : Window
             if (!parts.Any(s => s.Id == _session.Id)) parts.Add(_session);
             parts = parts.OrderBy(s => s.PartNumber).ToList();
 
-            var path = await new ExportService(_settings).ExportSeriesAsync(parts, dlg.ExportTc, dlg.ExportBug, dlg.ExportPdf, dlg.ExportZip);
+            var path = await new ExportService(_settings).ExportSeriesAsync(parts, dlg.ExportTc, dlg.ExportBug, dlg.ExportPdf, dlg.ExportVideo, dlg.ExportZip);
             StatusBar.Text = $"{Localizer.T("Exported", _settings.UiLanguage)}: {Path.GetFileName(path)}";
             StatusBar.ToolTip = path;
             var open = AppDialogWindow.ShowQuestion(this, "QAFlow Recorder",
@@ -555,7 +719,7 @@ public partial class MainWindow : Window
                 targetHwnd = DesktopCaptureService.GetForegroundWindowHandle();
                 targetTitle = DesktopCaptureService.GetWindowTitle(targetHwnd);
             }
-            var bitmap = DesktopCaptureService.CaptureWindowFromScreen(targetHwnd) ?? DesktopCaptureService.CapturePrimaryScreen();
+            var bitmap = CaptureConfiguredBitmap(targetHwnd);
             if (bitmap is null) return;
             var protectedBitmap = PrivacyMaskService.ApplyZones(bitmap, _settings.PrivacyZones, targetTitle);
 
@@ -1054,11 +1218,20 @@ public partial class MainWindow : Window
         SessionNameLabel.Text = Localizer.T("SessionName", l);
         OrganizationExpander.Header = es ? "Organización (opcional)" : "Organization (optional)";
         SessionFolderLabel.Text = es ? "Carpeta / proyecto" : "Folder / project";
-        SessionTagsLabel.Text = es ? "Etiquetas" : "Tags";
+        SessionTagsLabel.Text = es ? "Etiquetas personalizadas" : "Custom tags";
+        SessionTagsHelpText.Text = es ? "Crea etiquetas propias para filtros y trazabilidad del reporte, ej. regresión, checkout, staging." : "Create your own labels for filtering and report traceability, e.g. regression, checkout, staging.";
+        RiskSummaryExpander.Header = es ? "Resumen de riesgos (opcional)" : "Risk summary (optional)";
+        RiskSummaryHelpText.Text = es ? "Clasifica el riesgo residual observado durante esta ejecución. Es contexto QA, no una decisión automática de liberación." : "Classify residual risk observed during this execution. This is QA context, not an automatic release decision.";
+        FunctionalRiskLabel.Text = es ? "Funcional" : "Functional";
+        VisualRiskLabel.Text = es ? "Visual / UX" : "Visual / UX";
+        RegressionRiskLabel.Text = es ? "Regresión" : "Regression";
+        DataRiskLabel.Text = es ? "Datos" : "Data";
+        RiskSummaryNotesLabel.Text = es ? "Notas de riesgo QA" : "QA risk notes";
+        LocalizeRiskBox(FunctionalRiskBox, es); LocalizeRiskBox(VisualRiskBox, es); LocalizeRiskBox(RegressionRiskBox, es); LocalizeRiskBox(DataRiskBox, es);
         BuildVersionLabel.Text = es ? "Build / versión" : "Build / version";
         BuildVersionBox.ToolTip = es ? "Build o versión del software bajo prueba (opcional)" : "Optional software build or release under test";
         SessionFolderBox.ToolTip = es ? "Ej. Sprint 24 / Checkout" : "E.g. Sprint 24 / Checkout";
-        SessionTagsBox.ToolTip = es ? "Etiquetas separadas por coma, ej. regresión, checkout, staging" : "Comma-separated tags, e.g. regression, checkout, staging";
+        SessionTagsBox.ToolTip = es ? "Crea cualquier etiqueta que necesites; sepáralas por coma o punto y coma" : "Create any labels you need; separate them with commas or semicolons";
         TestTypeLabel.Text = Localizer.T("TestType", l);
         CharterExpander.Header = es ? "Charter exploratorio (opcional)" : "Exploratory charter (optional)";
         CharterObjectiveLabel.Text = es ? "Objetivo" : "Objective";
@@ -1072,6 +1245,19 @@ public partial class MainWindow : Window
         ReferenceFlowLabel.Text = es ? "Flujo de referencia (opcional)" : "Reference flow (optional)";
         ManageFlowsButton.Content = es ? "Biblioteca" : "Library";
         ShowFloatingBarCheck.Content = es ? "Mostrar barra de control durante la grabación" : "Show recording control bar";
+        CaptureAreaTitleText.Text = es ? "Área de grabación" : "Recording area";
+        CaptureAreaHelpText.Text = es ? "Elige la pantalla a capturar. Se usa pantalla completa salvo que definas un área personalizada." : "Choose the screen to capture. Full screen is used unless you define a custom area.";
+        SelectCaptureAreaButton.Content = es ? "▣  Seleccionar área" : "▣  Select custom area";
+        ClearCaptureAreaButton.Content = es ? "Pantalla completa" : "Full screen";
+        RefreshScreensButton.ToolTip = es ? "Detectar pantallas nuevamente" : "Detect screens again";
+        RecordVideoCheck.Content = es ? "Grabar video de la sesión (opcional)" : "Record session video (optional)";
+        VideoRecordingWarningText.Text = es
+            ? "El video utiliza más CPU, memoria y espacio en disco. Para un mejor rendimiento, evita sesiones de video muy extensas."
+            : "Video recording uses additional CPU, memory and disk space. For best performance, avoid very long video sessions.";
+        VideoRecordingSaveText.Text = es
+            ? "Al activarlo, QAFlow guarda el video de la sesión localmente y lo deja disponible en Exportar sesión al finalizar la ejecución QA."
+            : "When enabled, QAFlow saves the recorded session video locally and makes it available in Export session when the QA session finishes.";
+        UpdateCaptureAreaStatus();
         StartButton.Content = es ? "▶  Iniciar sesión QA" : "▶  Start QA session";
         PauseButton.Content = (_session?.State == SessionState.Paused ? "▶  " : "⏸  ") + (_session?.State == SessionState.Paused ? Localizer.T("Resume", l) : Localizer.T("Pause", l));
         FinishButton.Content = "■  " + Localizer.T("Finish", l);
@@ -1161,6 +1347,193 @@ public partial class MainWindow : Window
             ((ComboBoxItem)TemplateBox.Items[4]).Content = es ? "Exploratorio" : "Exploratory";
         }
     }
+
+
+    private static string RiskValue(int index) => index switch
+    {
+        1 => "Low",
+        2 => "Medium",
+        3 => "High",
+        4 => "Critical",
+        _ => "Not assessed"
+    };
+
+    private static void LocalizeRiskBox(ComboBox box, bool es)
+    {
+        if (box.Items.Count < 5) return;
+        ((ComboBoxItem)box.Items[0]).Content = es ? "No evaluado" : "Not assessed";
+        ((ComboBoxItem)box.Items[1]).Content = es ? "Bajo" : "Low";
+        ((ComboBoxItem)box.Items[2]).Content = es ? "Medio" : "Medium";
+        ((ComboBoxItem)box.Items[3]).Content = es ? "Alto" : "High";
+        ((ComboBoxItem)box.Items[4]).Content = es ? "Crítico" : "Critical";
+    }
+
+    private async Task SaveRecoveryCheckpointAsync(bool force = false)
+    {
+        if (_session is null || _session.State is not (SessionState.Recording or SessionState.Paused)) return;
+        if (!force && DateTimeOffset.Now - _lastRecoverySave < TimeSpan.FromSeconds(5)) return;
+        _lastRecoverySave = DateTimeOffset.Now;
+        _session.RecoveryCheckpointAt = _lastRecoverySave;
+        try { await _store.SaveAsync(_session); }
+        catch (Exception ex) { TechnicalLogService.Warn(nameof(MainWindow), "RecoveryCheckpoint", ex.Message, ex); }
+    }
+
+    private System.Windows.Media.Imaging.BitmapSource? CaptureVideoFrame()
+    {
+        // Video frames are captured on the recorder background thread. Do not read WPF controls here:
+        // the selected screen/custom area is frozen into the session when Start QA session is pressed.
+        var session = _session;
+        if (session is null || session.State != SessionState.Recording) return null;
+
+        System.Windows.Media.Imaging.BitmapSource? bitmap = null;
+        if (session.CaptureAreaWidth > 0 && session.CaptureAreaHeight > 0)
+        {
+            bitmap = DesktopCaptureService.CaptureRegion(new Int32Rect(
+                session.CaptureAreaX,
+                session.CaptureAreaY,
+                session.CaptureAreaWidth,
+                session.CaptureAreaHeight));
+        }
+        bitmap ??= DesktopCaptureService.CapturePrimaryScreen();
+        if (bitmap is null) return null;
+
+        var hwnd = _desktopRecorder.LastTargetWindow;
+        if (hwnd == IntPtr.Zero || DesktopCaptureService.IsHandleOwnedByCurrentProcess(hwnd))
+            hwnd = DesktopCaptureService.GetForegroundWindowHandle();
+        var title = DesktopCaptureService.GetWindowTitle(hwnd);
+        return PrivacyMaskService.ApplyZones(bitmap, _settings.PrivacyZones, title);
+    }
+
+    private async Task StartVideoRecordingAsync(TestSession session)
+    {
+        await StopVideoRecordingAsync();
+        if (!session.VideoRecordingEnabled) return;
+        try
+        {
+            var segment = session.VideoFilePaths.Count + 1;
+            var path = Path.Combine(_store.VideoFolder(session), $"session-video-{segment:00}-{DateTime.Now:yyyyMMdd-HHmmss}.avi");
+            session.VideoFilePaths.Add(path);
+            _videoRecorder = new VideoRecordingService(CaptureVideoFrame, path, Math.Clamp(session.VideoFrameRate, 1, 10), 72);
+            await _videoRecorder.StartAsync();
+            TechnicalLogService.Info(nameof(MainWindow), "VideoRecordingStarted", $"Optional session video started at {session.VideoFrameRate} fps.");
+        }
+        catch (Exception ex)
+        {
+            _videoRecorder = null;
+            TechnicalLogService.Warn(nameof(MainWindow), "StartVideoRecording", ex.Message, ex);
+            var es = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
+            StatusBar.Text = es ? "La sesión continúa, pero no se pudo iniciar el video opcional." : "The session continues, but optional video recording could not be started.";
+        }
+    }
+
+    private async Task StopVideoRecordingAsync()
+    {
+        var recorder = _videoRecorder;
+        _videoRecorder = null;
+        if (recorder is null) return;
+        try
+        {
+            var completedPath = await recorder.StopAsync();
+            if (_session is not null && string.IsNullOrWhiteSpace(completedPath))
+            {
+                _session.VideoFilePaths.RemoveAll(p => p.Equals(recorder.OutputPath, StringComparison.OrdinalIgnoreCase));
+            }
+            else if (!string.IsNullOrWhiteSpace(completedPath) && File.Exists(completedPath))
+            {
+                var bytes = new FileInfo(completedPath).Length;
+                TechnicalLogService.Info(nameof(MainWindow), "VideoRecordingSaved", $"Optional session video saved successfully ({bytes} bytes): {completedPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            TechnicalLogService.Warn(nameof(MainWindow), "StopVideoRecording", ex.Message, ex);
+        }
+    }
+
+    private async Task TryRecoverInterruptedSessionAsync()
+    {
+        var recoverable = await _store.LoadRecoverableAsync();
+        if (recoverable is null) return;
+        var es = _settings.UiLanguage.StartsWith("Esp", StringComparison.OrdinalIgnoreCase);
+        var checkpoint = recoverable.RecoveryCheckpointAt ?? recoverable.StartedAt;
+        var recover = AppDialogWindow.ShowQuestion(this,
+            es ? "Recuperar sesión interrumpida" : "Recover interrupted session",
+            es
+                ? $"QAFlow encontró una sesión que no se cerró correctamente: “{recoverable.DisplayName}”.\n\nÚltimo guardado seguro: {checkpoint.LocalDateTime:yyyy-MM-dd HH:mm:ss}.\n\n¿Deseas recuperarla y continuar?"
+                : $"QAFlow found a session that did not close normally: “{recoverable.DisplayName}”.\n\nLast safe checkpoint: {checkpoint.LocalDateTime:yyyy-MM-dd HH:mm:ss}.\n\nRecover it and continue?",
+            _settings.UiLanguage);
+
+        if (!recover)
+        {
+            recoverable.State = SessionState.Finished;
+            recoverable.FinishedAt = checkpoint;
+            recoverable.RecoveryCheckpointAt = checkpoint;
+            await _store.SaveAsync(recoverable);
+            await ReloadHistoryAsync();
+            return;
+        }
+
+        var now = DateTimeOffset.Now;
+        if (now > checkpoint) recoverable.PausedTime += now - checkpoint;
+        recoverable.RecoveredAfterUnexpectedClose = true;
+        recoverable.RecoveryCheckpointAt = now;
+        if (recoverable.State == SessionState.Paused) recoverable.PauseStartedAt = now;
+        _session = recoverable;
+        _lastRecoverySave = now;
+
+        if (!string.IsNullOrWhiteSpace(recoverable.CaptureDeviceName))
+        {
+            var monitor = _displayMonitors.FirstOrDefault(m => m.DeviceName.Equals(recoverable.CaptureDeviceName, StringComparison.OrdinalIgnoreCase));
+            if (monitor is not null) RecordingScreenBox.SelectedItem = monitor;
+        }
+        if (recoverable.CustomCaptureArea && recoverable.CaptureAreaWidth > 0 && recoverable.CaptureAreaHeight > 0)
+        {
+            _customCaptureArea = new CaptureAreaSelection
+            {
+                MonitorDeviceName = recoverable.CaptureDeviceName,
+                Bounds = new Int32Rect(recoverable.CaptureAreaX, recoverable.CaptureAreaY, recoverable.CaptureAreaWidth, recoverable.CaptureAreaHeight)
+            };
+        }
+        UpdateCaptureAreaStatus();
+
+        SessionNameBox.Text = string.IsNullOrWhiteSpace(recoverable.BaseName) ? recoverable.Name : recoverable.BaseName;
+        SessionFolderBox.Text = recoverable.Folder;
+        SessionTagsBox.Text = string.Join(", ", recoverable.Tags);
+        BuildVersionBox.Text = recoverable.BuildVersion;
+        RiskSummaryNotesBox.Text = recoverable.RiskSummaryNotes;
+        FunctionalRiskBox.SelectedIndex = RiskIndex(recoverable.FunctionalRisk);
+        VisualRiskBox.SelectedIndex = RiskIndex(recoverable.VisualRisk);
+        RegressionRiskBox.SelectedIndex = RiskIndex(recoverable.RegressionRisk);
+        DataRiskBox.SelectedIndex = RiskIndex(recoverable.DataRisk);
+        RecordVideoCheck.IsChecked = recoverable.VideoRecordingEnabled;
+
+        _desktopRecorder.Start();
+        if (recoverable.VideoRecordingEnabled)
+        {
+            await StartVideoRecordingAsync(recoverable);
+            if (recoverable.State == SessionState.Paused) _videoRecorder?.Pause();
+        }
+        StartButton.IsEnabled = false; PauseButton.IsEnabled = true; FinishButton.IsEnabled = true;
+        SessionTemplateBox.IsEnabled = false; ManageSessionTemplatesButton.IsEnabled = false;
+        SessionNameBox.IsEnabled = false; OrganizationExpander.IsEnabled = false; RiskSummaryExpander.IsEnabled = true;
+        TemplateBox.IsEnabled = false; CharterExpander.IsEnabled = false; ChecklistExpander.IsEnabled = false;
+        ReferenceFlowBox.IsEnabled = false; ManageFlowsButton.IsEnabled = false;
+        RecordingScreenBox.IsEnabled = false; RefreshScreensButton.IsEnabled = false; SelectCaptureAreaButton.IsEnabled = false; ClearCaptureAreaButton.IsEnabled = false; RecordVideoCheck.IsEnabled = false;
+        StateDot.Fill = new SolidColorBrush(recoverable.State == SessionState.Paused ? Color.FromRgb(244,184,96) : Color.FromRgb(255,101,119));
+        StateText.Text = recoverable.State == SessionState.Paused ? (es ? "PAUSADO · RECUPERADO" : "PAUSED · RECOVERED") : (es ? "GRABANDO · RECUPERADO" : "RECORDING · RECOVERED");
+        PauseButton.Content = recoverable.State == SessionState.Paused ? "▶  " + Localizer.T("Resume", _settings.UiLanguage) : "⏸  " + Localizer.T("Pause", _settings.UiLanguage);
+        _timer.Start();
+        if (_settings.PeriodicScreenshot) { _periodic.Interval = TimeSpan.FromSeconds(Math.Max(10, _settings.PeriodicSeconds)); _periodic.Tick -= Periodic_Tick; _periodic.Tick += Periodic_Tick; _periodic.Start(); }
+        RefreshMetrics();
+        StatusBar.Text = es ? "Sesión recuperada desde el último punto seguro." : "Session recovered from the last safe checkpoint.";
+        await SaveRecoveryCheckpointAsync(force: true);
+        RebuildFloatingBar();
+    }
+
+    private static int RiskIndex(string? value) => value?.Trim().ToLowerInvariant() switch
+    {
+        "low" => 1, "medium" => 2, "high" => 3, "critical" => 4, _ => 0
+    };
 
 
     private void DownloadExtension_Click(object sender, RoutedEventArgs e)
@@ -1300,6 +1673,16 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
+        if (_session is { State: SessionState.Recording or SessionState.Paused })
+        {
+            try
+            {
+                StopVideoRecordingAsync().GetAwaiter().GetResult();
+                _session.RecoveryCheckpointAt = DateTimeOffset.Now;
+                _store.SaveAsync(_session).GetAwaiter().GetResult();
+            }
+            catch (Exception ex) { TechnicalLogService.Warn(nameof(MainWindow), "CloseRecoveryCheckpoint", ex.Message, ex); }
+        }
         CloseFloatingBar();
         _desktopRecorder.Stop();
         if (_webBridge is not null)

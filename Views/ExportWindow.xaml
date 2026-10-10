@@ -1,7 +1,7 @@
 <Window x:Class="QAFlowRecorder.Views.ExportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Export session" Width="456" Height="570" MinWidth="456" MinHeight="520"
+        Title="Export session" Width="456" Height="640" MinWidth="456" MinHeight="590"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="{DynamicResource Bg0Brush}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False" Icon="pack://application:,,,/Assets/qaflow.ico">
     <Grid Margin="16">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -17,6 +17,7 @@
             <Border Style="{StaticResource ExportCard}"><StackPanel><CheckBox x:Name="Tc" IsChecked="True" Content="Structured session record" FontWeight="SemiBold"/><TextBlock x:Name="TcDesc" Text="Markdown + JSON with the ordered interaction record" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="22,4,0,0"/></StackPanel></Border>
             <Border Style="{StaticResource ExportCard}"><StackPanel><CheckBox x:Name="Pdf" IsChecked="True" Content="QA execution report (PDF)" FontWeight="SemiBold"/><TextBlock x:Name="PdfDesc" Text="Professional execution report with ordered steps and visual evidence" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="22,4,0,0"/></StackPanel></Border>
             <Border Style="{StaticResource ExportCard}"><StackPanel><CheckBox x:Name="Bug" Content="Bug report (PDF)" IsChecked="True" FontWeight="SemiBold"/><TextBlock x:Name="BugDesc" Text="Separate controlled defect report with marked evidence and reproduction steps" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="22,4,0,0"/></StackPanel></Border>
+            <Border x:Name="VideoCard" Style="{StaticResource ExportCard}"><StackPanel><CheckBox x:Name="Video" Content="Session video" IsChecked="True" FontWeight="SemiBold"/><TextBlock x:Name="VideoDesc" Text="Exports the optional screen video recorded during this QA session." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="22,4,0,0"/></StackPanel></Border>
             <Border Style="{StaticResource ExportCard}"><StackPanel><CheckBox x:Name="Zip" IsChecked="True" Content="Package as ZIP" FontWeight="SemiBold"/><TextBlock x:Name="ZipDesc" Text="Packages reports and evidence together. Multipart sessions keep each part clearly separated." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="22,4,0,0"/></StackPanel></Border>
         </StackPanel>
         <Grid Grid.Row="2" Margin="0,14,0,0">

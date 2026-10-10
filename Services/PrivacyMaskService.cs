@@ -7,7 +7,7 @@ namespace QAFlowRecorder.Services;
 
 public static class PrivacyMaskService
 {
-    public static BitmapSource Apply(BitmapSource source, QaEvent? ev, IntPtr targetWindow, PrivacyMaskMode mode)
+    public static BitmapSource Apply(BitmapSource source, QaEvent? ev, IntPtr targetWindow, PrivacyMaskMode mode, Int32Rect? captureRegion = null)
     {
         if (mode == PrivacyMaskMode.Off || ev is null) return source;
         if (mode == PrivacyMaskMode.Automatic && ev.Kind != EventKind.Input && !LooksSensitive(ev)) return source;
@@ -16,7 +16,11 @@ public static class PrivacyMaskService
         var wb = new WriteableBitmap(source);
         var width = wb.PixelWidth;
         var height = wb.PixelHeight;
-        var point = DesktopCaptureService.GetPointRelativeToWindow(targetWindow, ev.X, ev.Y);
+        Point? point = null;
+        if (captureRegion is { } region)
+            point = new Point(ev.X - region.X, ev.Y - region.Y);
+        else
+            point = DesktopCaptureService.GetPointRelativeToWindow(targetWindow, ev.X, ev.Y);
         var cx = point?.X ?? width * 0.5;
         var cy = point?.Y ?? height * 0.5;
         var maskWidth = Math.Min(width * 0.62, 560);

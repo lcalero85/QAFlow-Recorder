@@ -3,13 +3,26 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using QAFlowRecorder.Models;
 
 namespace QAFlowRecorder.Services;
 
 public static class DesktopCaptureService
 {
     [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct MONITORINFOEX
+    {
+        public int cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string szDevice;
+    }
+    private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi);
     [DllImport("user32.dll")] private static extern IntPtr GetDC(IntPtr hWnd);
     [DllImport("user32.dll")] private static extern bool GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int count);
@@ -70,14 +83,49 @@ public static class DesktopCaptureService
         return CaptureRegion(r.Left, r.Top, width, height);
     }
 
+    public static IReadOnlyList<DisplayMonitorInfo> GetMonitors()
+    {
+        var result = new List<DisplayMonitorInfo>();
+        bool Callback(IntPtr monitor, IntPtr hdc, ref RECT rect, IntPtr data)
+        {
+            var info = new MONITORINFOEX { cbSize = Marshal.SizeOf<MONITORINFOEX>(), szDevice = string.Empty };
+            if (!GetMonitorInfo(monitor, ref info)) return true;
+            var bounds = new Int32Rect(info.rcMonitor.Left, info.rcMonitor.Top,
+                Math.Max(1, info.rcMonitor.Right - info.rcMonitor.Left),
+                Math.Max(1, info.rcMonitor.Bottom - info.rcMonitor.Top));
+            var work = new Int32Rect(info.rcWork.Left, info.rcWork.Top,
+                Math.Max(1, info.rcWork.Right - info.rcWork.Left),
+                Math.Max(1, info.rcWork.Bottom - info.rcWork.Top));
+            var primary = (info.dwFlags & 1) != 0;
+            result.Add(new DisplayMonitorInfo
+            {
+                DeviceName = info.szDevice ?? string.Empty,
+                DisplayName = $"{(primary ? "★ " : "")}Screen {result.Count + 1} · {bounds.Width}×{bounds.Height}",
+                Bounds = bounds,
+                WorkArea = work,
+                IsPrimary = primary
+            });
+            return true;
+        }
+        EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, Callback, IntPtr.Zero);
+        return result.OrderByDescending(x => x.IsPrimary).ThenBy(x => x.Bounds.X).ThenBy(x => x.Bounds.Y).ToList();
+    }
+
     public static BitmapSource? CapturePrimaryScreen()
     {
+        var primary = GetMonitors().FirstOrDefault(x => x.IsPrimary) ?? GetMonitors().FirstOrDefault();
+        if (primary is not null) return CaptureRegion(primary.Bounds);
         var left = (int)SystemParameters.VirtualScreenLeft;
         var top = (int)SystemParameters.VirtualScreenTop;
         var width = Math.Max(1, (int)SystemParameters.VirtualScreenWidth);
         var height = Math.Max(1, (int)SystemParameters.VirtualScreenHeight);
         return CaptureRegion(left, top, width, height);
     }
+
+    public static BitmapSource? CaptureMonitor(DisplayMonitorInfo monitor) => CaptureRegion(monitor.Bounds);
+
+    public static BitmapSource? CaptureRegion(Int32Rect region) =>
+        region.Width <= 0 || region.Height <= 0 ? null : CaptureRegion(region.X, region.Y, region.Width, region.Height);
 
     private static BitmapSource? CaptureRegion(int left, int top, int width, int height)
     {

@@ -79,7 +79,27 @@
 
                             <CheckBox x:Name="ShowFloatingBarCheck" Content="Show recording control bar" IsChecked="True" Margin="0,12,0,0"/>
 
-                            <Border Margin="0,14,0,0" Padding="11" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+                            <Border Margin="0,12,0,0" Padding="11" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock x:Name="CaptureAreaTitleText" Text="Recording area" FontWeight="SemiBold" FontSize="12"/>
+                                            <TextBlock x:Name="CaptureAreaHelpText" Text="Choose the screen to capture. Full screen is used unless you define a custom area." Foreground="{DynamicResource Muted3Brush}" FontSize="9.5" TextWrapping="Wrap" Margin="0,2,10,0"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" x:Name="RefreshScreensButton" Content="↻" Width="32" Height="30" Padding="0" Click="RefreshScreens_Click" ToolTip="Detect screens again"/>
+                                    </Grid>
+                                    <ComboBox x:Name="RecordingScreenBox" Height="36" Margin="0,8,0,0" DisplayMemberPath="DisplayName" SelectionChanged="RecordingScreenBox_SelectionChanged"/>
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <Button x:Name="SelectCaptureAreaButton" Content="▣  Select custom area" Click="SelectCaptureArea_Click"/>
+                                        <Button Grid.Column="2" x:Name="ClearCaptureAreaButton" Content="Full screen" Click="ClearCaptureArea_Click" IsEnabled="False"/>
+                                    </Grid>
+                                    <TextBlock x:Name="CaptureAreaStatusText" Text="Full screen" Foreground="{DynamicResource Muted2Brush}" FontSize="9.5" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Margin="0,12,0,0" Padding="11" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -100,7 +120,17 @@
                             </Grid>
 
                             <Expander x:Name="AdvancedSessionExpander" Header="Advanced session options" Margin="0,14,0,0" IsExpanded="False">
-                                <StackPanel Margin="0,9,0,2">
+                                <Border Margin="0,8,0,0" MaxHeight="380" Background="Transparent">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                                  PanningMode="VerticalOnly" CanContentScroll="False">
+                                        <StackPanel Margin="0,1,6,2">
+                                    <Border x:Name="VideoRecordingAdvancedCard" Margin="0,0,0,10" Padding="10,9" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+                                        <StackPanel>
+                                            <CheckBox x:Name="RecordVideoCheck" Content="Record session video (optional)" FontWeight="SemiBold"/>
+                                            <TextBlock x:Name="VideoRecordingWarningText" Text="Video recording uses additional CPU, memory and disk space. For best performance, avoid very long video sessions." Foreground="{DynamicResource Muted3Brush}" FontSize="9.4" TextWrapping="Wrap" Margin="22,4,0,0"/>
+                                            <TextBlock x:Name="VideoRecordingSaveText" Text="When enabled, QAFlow saves the recorded session video locally and makes it available in Export session when the QA session finishes." Foreground="{DynamicResource Muted2Brush}" FontSize="9.3" TextWrapping="Wrap" Margin="22,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
                                     <TextBlock x:Name="SessionTemplateLabel" Text="Session template (optional)" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
                                     <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <ComboBox x:Name="SessionTemplateBox" Height="38" SelectionChanged="SessionTemplateBox_SelectionChanged" DisplayMemberPath="DisplayName"/>
@@ -111,10 +141,29 @@
                                         <StackPanel Margin="0,8,0,2">
                                             <TextBlock x:Name="SessionFolderLabel" Text="Folder / project" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
                                             <TextBox x:Name="SessionFolderBox" Height="36" Margin="0,4,0,7" VerticalContentAlignment="Center" ToolTip="E.g. Sprint 24 / Checkout"/>
-                                            <TextBlock x:Name="SessionTagsLabel" Text="Tags" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
-                                            <TextBox x:Name="SessionTagsBox" Height="36" Margin="0,4,0,7" VerticalContentAlignment="Center" ToolTip="Comma-separated tags, e.g. regression, checkout, staging"/>
+                                            <TextBlock x:Name="SessionTagsLabel" Text="Custom tags" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
+                                            <TextBox x:Name="SessionTagsBox" Height="36" Margin="0,4,0,3" VerticalContentAlignment="Center" ToolTip="Create any labels you need, separated by comma or semicolon"/>
+                                            <TextBlock x:Name="SessionTagsHelpText" Text="Create reusable labels for filtering and report traceability, e.g. regression, checkout, staging." Foreground="{DynamicResource MutedExact3Brush}" FontSize="9.4" TextWrapping="Wrap" Margin="0,0,0,7"/>
                                             <TextBlock x:Name="BuildVersionLabel" Text="Build / version" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
                                             <TextBox x:Name="BuildVersionBox" Height="36" Margin="0,4,0,0" VerticalContentAlignment="Center" ToolTip="Optional software build or release under test"/>
+                                        </StackPanel>
+                                    </Expander>
+
+                                    <Expander x:Name="RiskSummaryExpander" Header="Risk summary (optional)" Margin="0,10,0,0">
+                                        <StackPanel Margin="0,8,0,2">
+                                            <TextBlock x:Name="RiskSummaryHelpText" Text="Classify residual risk observed during this execution. This is QA context, not an automatic release decision." Foreground="{DynamicResource MutedExact3Brush}" FontSize="9.8" TextWrapping="Wrap" Margin="0,0,0,7"/>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock x:Name="FunctionalRiskLabel" Text="Functional" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><ComboBox x:Name="FunctionalRiskBox" Height="36" SelectedIndex="0" Margin="0,4,0,7"><ComboBoxItem Content="Not assessed"/><ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Critical"/></ComboBox></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock x:Name="VisualRiskLabel" Text="Visual / UX" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><ComboBox x:Name="VisualRiskBox" Height="36" SelectedIndex="0" Margin="0,4,0,7"><ComboBoxItem Content="Not assessed"/><ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Critical"/></ComboBox></StackPanel>
+                                            </Grid>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <StackPanel><TextBlock x:Name="RegressionRiskLabel" Text="Regression" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><ComboBox x:Name="RegressionRiskBox" Height="36" SelectedIndex="0" Margin="0,4,0,7"><ComboBoxItem Content="Not assessed"/><ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Critical"/></ComboBox></StackPanel>
+                                                <StackPanel Grid.Column="2"><TextBlock x:Name="DataRiskLabel" Text="Data" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/><ComboBox x:Name="DataRiskBox" Height="36" SelectedIndex="0" Margin="0,4,0,7"><ComboBoxItem Content="Not assessed"/><ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Critical"/></ComboBox></StackPanel>
+                                            </Grid>
+                                            <TextBlock x:Name="RiskSummaryNotesLabel" Text="QA risk notes" FontSize="10.5" Foreground="{DynamicResource TextSubtleBrush}"/>
+                                            <TextBox x:Name="RiskSummaryNotesBox" Height="58" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </Expander>
 
@@ -141,7 +190,9 @@
                                         </ComboBox>
                                         <Button Grid.Column="2" x:Name="ManageFlowsButton" Content="Library" Width="82" Click="ManageFlows_Click"/>
                                     </Grid>
-                                </StackPanel>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Border>
                             </Expander>
 
                             <Border Margin="0,16,0,0" Padding="12" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource SurfaceExact6Brush}" BorderThickness="1" CornerRadius="10">

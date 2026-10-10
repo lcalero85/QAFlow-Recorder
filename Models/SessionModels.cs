@@ -193,7 +193,24 @@ public sealed class TestSession
     public int CharterPlannedMinutes { get; set; }
     public string Os { get; set; } = Environment.OSVersion.VersionString;
     public string Resolution { get; set; } = "";
+    public string CaptureScreen { get; set; } = "";
+    public string CaptureDeviceName { get; set; } = "";
+    public bool CustomCaptureArea { get; set; }
+    public int CaptureAreaX { get; set; }
+    public int CaptureAreaY { get; set; }
+    public int CaptureAreaWidth { get; set; }
+    public int CaptureAreaHeight { get; set; }
     public string BuildVersion { get; set; } = "";
+    public string FunctionalRisk { get; set; } = "Not assessed";
+    public string VisualRisk { get; set; } = "Not assessed";
+    public string RegressionRisk { get; set; } = "Not assessed";
+    public string DataRisk { get; set; } = "Not assessed";
+    public string RiskSummaryNotes { get; set; } = "";
+    public DateTimeOffset? RecoveryCheckpointAt { get; set; }
+    public bool RecoveredAfterUnexpectedClose { get; set; }
+    public bool VideoRecordingEnabled { get; set; }
+    public int VideoFrameRate { get; set; } = 4;
+    public List<string> VideoFilePaths { get; set; } = [];
     public EnvironmentSnapshot EnvironmentSnapshot { get; set; } = new();
     public List<SessionBookmark> Bookmarks { get; set; } = [];
     public List<ManualChecklistItem> ManualChecklist { get; set; } = [];

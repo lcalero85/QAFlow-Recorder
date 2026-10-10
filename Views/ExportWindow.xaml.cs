@@ -9,6 +9,7 @@ public partial class ExportWindow : Window
     public bool ExportPdf => Pdf.IsChecked == true;
     public bool ExportBug => Bug.IsChecked == true;
     public bool ExportZip => Zip.IsChecked == true;
+    public bool ExportVideo => Video.IsChecked == true;
 
     public ExportWindow(TestSession s, string language="English")
     {
@@ -26,11 +27,18 @@ public partial class ExportWindow : Window
         ExportButton.Content = es ? "Exportar" : "Export";
         Bug.IsChecked = s.Bugs.Count > 0;
         Bug.IsEnabled = s.Bugs.Count > 0;
+        var hasVideo = s.VideoFilePaths.Any(File.Exists);
+        Video.IsChecked = hasVideo;
+        Video.IsEnabled = hasVideo;
+        VideoCard.Opacity = hasVideo ? 1.0 : 0.55;
+        if (!es && !hasVideo) VideoDesc.Text = "No video was recorded for this session.";
         if (es)
         {
             TcDesc.Text = "Markdown + JSON con el registro ordenado de interacciones.";
             PdfDesc.Text = "Reporte profesional de ejecución con pasos ordenados y evidencia visual.";
             BugDesc.Text = "Reporte de defectos separado con evidencia marcada y pasos para reproducir.";
+            Video.Content = "Video de la sesión";
+            VideoDesc.Text = hasVideo ? "Exporta el video opcional capturado durante esta sesión QA." : "No se grabó video en esta sesión.";
             ZipDesc.Text = "Empaqueta reportes y evidencias. Las sesiones multipartes mantienen cada parte claramente separada.";
         }
     }

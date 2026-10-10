@@ -7,6 +7,7 @@ namespace QAFlowRecorder.Services;
 public sealed class SessionStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
     public string Root { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QAFlow Recorder 1.0");
     public string SessionRoot => Path.Combine(Root, "Sessions");
     public string SettingsFile => Path.Combine(Root, "settings.json");
@@ -18,10 +19,30 @@ public sealed class SessionStore
 
     public async Task SaveAsync(TestSession session)
     {
-        var dir = Path.Combine(SessionRoot, session.Id.ToString("N"));
-        Directory.CreateDirectory(dir);
-        await File.WriteAllTextAsync(Path.Combine(dir, "session.json"), JsonSerializer.Serialize(session, JsonOptions));
-        TrimHistory();
+        await _saveGate.WaitAsync();
+        try
+        {
+            var dir = Path.Combine(SessionRoot, session.Id.ToString("N"));
+            Directory.CreateDirectory(dir);
+            var target = Path.Combine(dir, "session.json");
+            var temp = target + ".tmp";
+            await File.WriteAllTextAsync(temp, JsonSerializer.Serialize(session, JsonOptions));
+            File.Move(temp, target, true);
+            TrimHistory();
+        }
+        finally
+        {
+            _saveGate.Release();
+        }
+    }
+
+    public async Task<TestSession?> LoadRecoverableAsync()
+    {
+        var all = await LoadAllAsync();
+        return all
+            .Where(s => s.FinishedAt is null && s.State is SessionState.Recording or SessionState.Paused)
+            .OrderByDescending(s => s.RecoveryCheckpointAt ?? s.StartedAt)
+            .FirstOrDefault();
     }
 
     public async Task<List<TestSession>> LoadAllAsync()
@@ -92,6 +113,13 @@ public sealed class SessionStore
     public string EvidenceFolder(TestSession session)
     {
         var path = Path.Combine(SessionRoot, session.Id.ToString("N"), "evidence");
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    public string VideoFolder(TestSession session)
+    {
+        var path = Path.Combine(SessionRoot, session.Id.ToString("N"), "video");
         Directory.CreateDirectory(path);
         return path;
     }
