@@ -51,4 +51,4 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 
 [Run]
 Filename: "{tmp}\MicrosoftEdgeWebView2RuntimeInstallerX64.exe"; Parameters: "/silent /install"; StatusMsg: "Installing Microsoft Edge WebView2 Runtime..."; Flags: waituntilterminated
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch QAFlow Recorder"; Flags: nowait postinstall skipifsilent
+;Filename: "{app}\{#MyAppExeName}"; Description: "Launch QAFlow Recorder"; Flags: nowait postinstall skipifsilent
